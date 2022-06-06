@@ -2,8 +2,8 @@
 // Created by Paul Walker on 5/13/22.
 //
 
-#ifndef MICRO_CLAP_HOST_CLAP_VAL_HOST_H
-#define MICRO_CLAP_HOST_CLAP_VAL_HOST_H
+#ifndef CLAP_VAL_HOST_CLAP_VAL_HOST_H
+#define CLAP_VAL_HOST_CLAP_VAL_HOST_H
 
 #include <filesystem>
 #include <cassert>
@@ -114,4 +114,4 @@ struct clap_val_output_events
 
 } // namespace clap_val_host
 
-#endif // MICRO_CLAP_HOST_CLAP_VAL_HOST_H
+#endif // CLAP_VAL_HOST_CLAP_VAL_HOST_H
