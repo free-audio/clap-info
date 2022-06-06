@@ -7,23 +7,33 @@
 #include <clap/ext/params.h>
 #include <clap/ext/audio-ports.h>
 
-#include <unordered_map>
+#include <CLI11/CLI11.hpp>
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
-    {
-        std::cout << "USAGE: " << argv[0] << " path-to-clap" << std::endl;
-        exit(1);
-    }
-    std::string clap = argv[1];
-    auto clapPath = std::filesystem::path(clap);
+    CLI::App app("clap-val: CLAP command line validation tool");
 
+    app.set_version_flag("--version", "0.0.0");
+    std::string clap;
+    app.add_option("-f,--file,file", clap, "CLAP plugin file location")->required(true);
+
+    CLI11_PARSE(app, argc, argv);
+
+    auto clapPath = std::filesystem::path(clap);
+#if MAC
     if (!(std::filesystem::is_directory(clapPath) || std::filesystem::is_regular_file(clapPath)))
     {
         std::cout << "Your file '" << clap << "' is neither a bundle nor a file" << std::endl;
         exit(2);
     }
+#else
+    if (std::filesystem::is_regular_file(clapPath)))
+    {
+        std::cout << "Your file '" << clap << "' is not a regular file" << std::endl;
+        exit(2);
+    }
+#endif
+
 
     std::cout << "Loading clap        : " << clap << std::endl;
 
@@ -71,7 +81,6 @@ int main(int argc, char **argv)
     // Now lets make an instance
     auto host = clap_val_host::createClapValHost();
     auto inst = fac->create_plugin(fac, host, desc->id);
-
 
     inst->init(inst);
     inst->activate(inst, 48000, 32, 4096);
