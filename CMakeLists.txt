@@ -4,16 +4,17 @@ cmake_policy(SET CMP0091 NEW)
 # This only needs macos 15 due to std::filesystem, not clap
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15 CACHE STRING "Minimum macOS version")
 
-project(micro-clap-host VERSION 0.1.0 LANGUAGES C CXX)
+project(clap-val VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+# CLAP supports standard C; but this validator uses std::filesystem so requires C++ 17
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(libs/clap)
 add_subdirectory(libs/CLI11)
 
-# use asan on mac
-set(SANITIZE TRUE)
+# use asan as an option (currently mac only)
+option(USE_USE_SANITIZERR "Build and link with ASAN" FALSE)
 
 add_executable(${PROJECT_NAME}
         src/main.cpp
@@ -24,12 +25,12 @@ if (APPLE)
     target_compile_definitions(${PROJECT_NAME} PRIVATE MAC=1)
     target_link_libraries(${PROJECT_NAME} PRIVATE dl "-framework CoreFoundation")
     target_compile_options(${PROJECT_NAME} PRIVATE
-            $<$<BOOL:${SANITIZE}>:-fsanitize=address>
-            $<$<BOOL:${SANITIZE}>:-fsanitize=undefined>
+            $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=address>
+            $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=undefined>
     )
     target_link_options(${PROJECT_NAME} PRIVATE
-            $<$<BOOL:${SANITIZE}>:-fsanitize=address>
-            $<$<BOOL:${SANITIZE}>:-fsanitize=undefined>
+            $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=address>
+            $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=undefined>
     )
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
 elseif(UNIX)

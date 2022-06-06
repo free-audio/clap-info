@@ -99,7 +99,7 @@ int main(int argc, char **argv)
             double d;
             inst_param->get_value(inst, inf.id, &d);
 
-            std::cout << i << " " << inf.module << " " << inf.name << " (id=0x" << std::hex
+            std::cout << "    " << i << " " << inf.module << " " << inf.name << " (id=0x" << std::hex
                       << inf.id << std::dec << ") val=" << d << std::endl;
         }
     }
@@ -115,20 +115,21 @@ int main(int argc, char **argv)
         inPorts = inst_ports->count(inst, true);
         outPorts = inst_ports->count(inst, false);
 
+        std::cout << "Plugin has " << inPorts << " input and " << outPorts << " output ports." << std::endl;
+
+
         // For now fail out if a port isn't stereo
         for (int i = 0; i < inPorts; ++i)
         {
             clap_audio_port_info_t inf;
             inst_ports->get(inst, i, true, &inf);
-            if (inf.channel_count != 2)
-                std::cout << "ERROR - need channel count 2" << std::endl;
+            std::cout << "    Input " << i << " : name=" << inf.name << " channels=" << inf.channel_count << std::endl;
         }
         for (int i = 0; i < outPorts; ++i)
         {
             clap_audio_port_info_t inf;
             inst_ports->get(inst, i, false, &inf);
-            if (inf.channel_count != 2)
-                std::cout << "ERROR - need channel count 2" << std::endl;
+            std::cout << "    Output " << i << " : name=" << inf.name << " channels=" << inf.channel_count << std::endl;
         }
     }
     else
