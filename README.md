@@ -7,7 +7,7 @@ of how to clap host.
 
 ```bash
 git clone (repo)
-cd micro-clap-host
+cd clap-val
 git submodule update --init --recursive
 cmake -Bbuild
 cmake --build build
