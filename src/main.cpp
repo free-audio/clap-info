@@ -27,7 +27,7 @@ int main(int argc, char **argv)
         exit(2);
     }
 #else
-    if (std::filesystem::is_regular_file(clapPath)))
+    if (!std::filesystem::is_regular_file(clapPath)))
     {
         std::cout << "Your file '" << clap << "' is not a regular file" << std::endl;
         exit(2);
