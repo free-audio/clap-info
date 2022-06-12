@@ -1,7 +1,11 @@
-# A simple command line clap validator
+# A simple command line CLAP information tool
 
-This is a clap validator which I'm using to just sort of show and bootstrap basics
-of how to clap host.
+This is a CLAP information tool which simply loads a clap and allows you to
+print a variety of information about the plugin. It is primarily useful in 
+debugging and when starting a CLAP, but also is handy for smoke tests, attaching
+debuggers, and so on.
+
+We welcome pull requests and improvements.
 
 ## To build
 
