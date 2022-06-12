@@ -18,7 +18,7 @@ option(USE_USE_SANITIZER "Build and link with ASAN" FALSE)
 
 add_executable(${PROJECT_NAME}
         src/main.cpp
-        src/clap-val-host.cpp
+        src/clap-info-host.cpp
         src/resolve_entrypoint.cpp)
 
 if (APPLE)

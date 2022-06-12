@@ -18,13 +18,18 @@ cmake --build build
 ```
 
 ## To use
+
+The most basic usage, using all the default flags, is:
+
 ```bash
-build/clap-val "/path/to/Surge XT.clap"
+build/clap-info "/path/to/Surge XT.clap"
 ```
 
-or
+But you can configure the information with various degrees of probes, verbosity, and more. 
+In this regard, the code is the documentation, but luckily our argument parser means the
+code is also our help screen! Try:
 
 ```bash
-build/clap-val --help
+build/clap-info --help
 ```
 

@@ -2,7 +2,7 @@
 // Created by Paul Walker on 5/13/22.
 //
 
-#include "clap-val-host.h"
+#include "clap-info-host.h"
 #include <iostream>
 
 #if MAC
@@ -17,7 +17,7 @@
 #include <dlfcn.h>
 #endif
 
-namespace clap_val_host
+namespace clap_info_host
 {
 #if MAC
 clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
@@ -56,7 +56,6 @@ clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
 #if LIN
 clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
 {
-    std::cout << "WARNING - THIS CODE IS COMPLETELY UNTESTED" << std::endl;
     void    *handle;
     int     *iptr;
 
@@ -70,4 +69,4 @@ clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
 #endif
 
 
-} // namespace clap_val_host
+} // namespace clap_info_host
