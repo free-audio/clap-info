@@ -10,7 +10,7 @@ We welcome pull requests and improvements.
 ## To build
 
 ```bash
-git clone https://github.com/free-audio/clap-info
+git clone https://github.com/surge-synthesizer/clap-info
 cd clap-info
 git submodule update --init --recursive
 cmake -Bbuild
