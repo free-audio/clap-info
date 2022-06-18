@@ -38,6 +38,8 @@ clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
 
     return (clap_plugin_entry_t *)db;
 }
+
+void getSystemPaths(std::vector<std::filesystem::path> &);
 #endif
 
 #if WIN
@@ -67,6 +69,44 @@ clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
 }
 
 #endif
+
+std::vector<std::filesystem::path> validCLAPSearchPaths()
+{
+    std::vector<std::filesystem::path> res;
+
+#if MAC
+    getSystemPaths(res);
+#endif
+
+#if LIN
+    res.emplace_back("/usr/lib/clap");
+    res.emplace_back(std::filesystem::path(getenv("HOME")) / std::filesystem::path(".clap"));
+#endif
+
+    auto p = getenv( "CLAP_PATH" );
+
+    if (p)
+    {
+#if WIN
+        auto sep = ';';
+#else
+        auto sep = ':';
+#endif
+        auto cp = std::string(p);
+
+        size_t pos;
+        while((pos = cp.find(sep)) != std::string::npos)
+        {
+            auto item = cp.substr(0, pos);
+            cp = cp.substr(pos+1);
+            res.emplace_back(std::filesystem::path{item});
+        }
+        if (cp.size())
+            res.emplace_back(std::filesystem::path{cp});
+    }
+
+    return res;
+}
 
 
 } // namespace clap_info_host

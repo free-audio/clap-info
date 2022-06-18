@@ -19,11 +19,17 @@ option(USE_USE_SANITIZER "Build and link with ASAN" FALSE)
 add_executable(${PROJECT_NAME}
         src/main.cpp
         src/clap-info-host.cpp
-        src/resolve_entrypoint.cpp)
+        src/resolve_entrypoint.cpp
+
+        src/info-params.cpp
+        src/info-pathscan.cpp
+        src/info-ports.cpp
+        )
 
 if (APPLE)
     target_compile_definitions(${PROJECT_NAME} PRIVATE MAC=1)
-    target_link_libraries(${PROJECT_NAME} PRIVATE dl "-framework CoreFoundation")
+    target_sources(${PROJECT_NAME} PRIVATE src/resolve_macosLocations.mm)
+    target_link_libraries(${PROJECT_NAME} PRIVATE dl "-framework CoreFoundation" "-framework Foundation")
     target_compile_options(${PROJECT_NAME} PRIVATE
             $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=address>
             $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=undefined>

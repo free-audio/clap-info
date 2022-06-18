@@ -17,12 +17,16 @@
 
 #include <clap/ext/params.h>
 #include <clap/ext/audio-ports.h>
+#include <vector>
 
 namespace clap_info_host
 {
 // This is a dlope/bundle/loadlibrary and is OS dependent. It is some of the
 // ONLY OS dependent code we have and is in resolve_entrypoint.cpp
 clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p);
+
+// Implemented in resolve_entrypoint.cpp
+std::vector<std::filesystem::path> validCLAPSearchPaths();
 
 struct HostConfig
 {
