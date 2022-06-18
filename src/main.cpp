@@ -4,9 +4,9 @@
 #include "clap-info-host.h"
 
 #include <clap/plugin-factory.h>
-#include <clap/ext/params.h>
-#include <clap/ext/audio-ports.h>
-#include <clap/ext/note-ports.h>
+
+
+#include <info.h>
 
 #include <CLI11/CLI11.hpp>
 
@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 
     app.set_version_flag("--version", "0.0.0");
     std::string clap;
-    app.add_option("-f,--file,file", clap, "CLAP plugin file location")->required(true);
+    app.add_option("-f,--file,file", clap, "CLAP plugin file location");
 
     bool create{true};
     app.add_option("--create", create, "Choose whether to create an instance of the plugin or just scan the entry.")->default_str("TRUE");
@@ -42,7 +42,35 @@ int main(int argc, char **argv)
     bool notePorts{true};
     app.add_option( "--note-ports", notePorts, "Display the Note Ports configuration")->default_str("TRUE");
 
+    bool searchPath{false};
+    app.add_flag( "--search-path", searchPath, "Show the CLAP plugin search paths then exit");
+
+    bool showClaps{false};
+    app.add_flag( "-l,--list-clap-files", showClaps, "Show all CLAP files in the search path then exit");
+
+    bool showClapsWithDesc{false};
+    app.add_flag( "-s,--scan-clap-files", showClapsWithDesc, "Show all descriptions in all CLAP files in the search path, then exit");
+
     CLI11_PARSE(app, argc, argv);
+
+    if (searchPath)
+    {
+        clap_info_host::showCLAPSearchpath();
+        exit(0);
+    }
+
+    if (showClaps)
+    {
+        clap_info_host::recurseAndListCLAPSearchpath(clap_info_host::FIND_FILES);
+        exit(0);
+    }
+
+
+    if (showClapsWithDesc)
+    {
+        clap_info_host::recurseAndListCLAPSearchpath(clap_info_host::FIND_DESCRIPTIONS);
+        exit(0);
+    }
 
     auto clapPath = std::filesystem::path(clap);
 #if MAC
@@ -133,117 +161,17 @@ int main(int argc, char **argv)
 
     if (paramShow)
     {
-        auto inst_param = (clap_plugin_params_t *)inst->get_extension(inst, CLAP_EXT_PARAMS);
-        if (inst_param)
-        {
-            auto pc = inst_param->count(inst);
-            std::cout << "Plugin has " << pc << " params " << std::endl;
-
-            for (auto i = 0U; i < pc; ++i)
-            {
-                clap_param_info_t inf;
-                inst_param->get_info(inst, i, &inf);
-
-                double d;
-                inst_param->get_value(inst, inf.id, &d);
-
-                std::cout << "   " << i << " " << inf.module << " " << inf.name << " (id=0x"
-                          << std::hex << inf.id << std::dec << ") val=" << d << std::endl;
-            }
-        }
-        else
-        {
-            std::cout << "Parameters: Plugin does not implement '" << CLAP_EXT_PARAMS << "'" << std::endl;
-        }
+        clap_info_host::showParams(inst);
     }
 
     if (audioPorts)
     {
-        auto inst_ports =
-            (clap_plugin_audio_ports_t *)inst->get_extension(inst, CLAP_EXT_AUDIO_PORTS);
-        int inPorts{0}, outPorts{0};
-        if (inst_ports)
-        {
-            inPorts = inst_ports->count(inst, true);
-            outPorts = inst_ports->count(inst, false);
-
-            std::cout << "Audio Ports: Plugin has " << inPorts << " input and " << outPorts << " output ports."
-                      << std::endl;
-
-            // For now fail out if a port isn't stereo
-            for (int i = 0; i < inPorts; ++i)
-            {
-                clap_audio_port_info_t inf;
-                inst_ports->get(inst, i, true, &inf);
-                std::cout << "    Input " << i << " : name=" << inf.name
-                          << " channels=" << inf.channel_count << std::endl;
-            }
-            for (int i = 0; i < outPorts; ++i)
-            {
-                clap_audio_port_info_t inf;
-                inst_ports->get(inst, i, false, &inf);
-                std::cout << "    Output " << i << " : name=" << inf.name
-                          << " channels=" << inf.channel_count << std::endl;
-            }
-        }
-        else
-        {
-            std::cout << "Audio Ports: Plugin does not implement '" << CLAP_EXT_AUDIO_PORTS << "'" << std::endl;
-        }
+        clap_info_host::showAudioPorts(inst);
     }
 
     if (notePorts)
     {
-        auto inst_ports =
-            (clap_plugin_note_ports_t *)inst->get_extension(inst, CLAP_EXT_NOTE_PORTS);
-        int inPorts{0}, outPorts{0};
-        if (inst_ports)
-        {
-            inPorts = inst_ports->count(inst, true);
-            outPorts = inst_ports->count(inst, false);
-
-            std::cout << "Note Ports: Plugin has " << inPorts << " input and " << outPorts << " output ports."
-                      << std::endl;
-
-            auto dial = [](auto supported, auto pref) {
-                std::ostringstream oss;
-                std::string pre = "";
-#define CHECKD(x) \
-                if (supported & x) {\
-                oss << pre << #x; \
-                if (pref == x)     \
-                oss << " (pref)";   \
-                pre = ", ";  \
-                }
-
-                CHECKD(CLAP_NOTE_DIALECT_CLAP);
-                CHECKD(CLAP_NOTE_DIALECT_MIDI);
-                CHECKD(CLAP_NOTE_DIALECT_MIDI_MPE);
-                CHECKD(CLAP_NOTE_DIALECT_MIDI2);
-
-#undef CHECKD
-
-                return oss.str();
-            };
-            for (int i = 0; i < inPorts; ++i)
-            {
-                clap_note_port_info_t inf;
-                inst_ports->get(inst, i, true, &inf);
-                std::cout << "    Input " << i << " : name=" << inf.name << " (" << inf.id << ") "
-                          << " dialects=" << dial(inf.supported_dialects, inf.preferred_dialect) << std::endl;
-            }
-            for (int i = 0; i < outPorts; ++i)
-            {
-                clap_note_port_info_t inf;
-                inst_ports->get(inst, i, false, &inf);
-                std::cout << "    Output " << i << " : name=" << inf.name << " (" << inf.id << ") "
-                          << " dialects=" << dial(inf.supported_dialects, inf.preferred_dialect) << std::endl;
-            }
-        }
-        else
-        {
-            std::cout << "Note Ports: Plugin does not implement '" << CLAP_EXT_AUDIO_PORTS << "'" << std::endl;
-        }
+        clap_info_host::showNotePorts(inst);
     }
 
     inst->deactivate(inst);
