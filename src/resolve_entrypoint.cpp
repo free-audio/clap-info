@@ -11,6 +11,7 @@
 
 #if WIN
 #include <windows.h>
+#include <shlobj_core.h>
 #endif
 
 #if LIN
@@ -81,6 +82,23 @@ std::vector<std::filesystem::path> validCLAPSearchPaths()
 #if LIN
     res.emplace_back("/usr/lib/clap");
     res.emplace_back(std::filesystem::path(getenv("HOME")) / std::filesystem::path(".clap"));
+#endif
+
+#if WIN
+    {
+        // I think this should use SHGetKnownFilderLocation but I don't know windows well enough
+        auto p = getenv("COMMONPROGRAMFILES");
+        if (p)
+        {
+            res.emplace_back(std::filesystem::path{p} / "CLAP");
+        }
+        auto q = getenv("LOCALAPPDATA");
+        if (q)
+        {
+            res.emplace_back(std::filesystem::path{q} / "Programs" / "Common" / "CLAP" );
+        }
+
+    }
 #endif
 
     auto p = getenv( "CLAP_PATH" );
