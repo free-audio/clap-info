@@ -12,65 +12,76 @@
 
 #include "info.h"
 
+#include "json/json.h"
 
 namespace clap_info_host
 {
-void showAudioPorts(const clap_plugin *inst)
+
+Json::Value showAudioPorts(const clap_plugin *inst)
 {
     auto inst_ports =
         (clap_plugin_audio_ports_t *)inst->get_extension(inst, CLAP_EXT_AUDIO_PORTS);
     int inPorts{0}, outPorts{0};
+
+    Json::Value audioPorts;
     if (inst_ports)
     {
         inPorts = inst_ports->count(inst, true);
+        audioPorts["input-port-count"] = inPorts;
         outPorts = inst_ports->count(inst, false);
+        audioPorts["output-port-count"] = outPorts;
 
-        std::cout << "Audio Ports: Plugin has " << inPorts << " input and " << outPorts << " output ports."
-                  << std::endl;
-
-        // For now fail out if a port isn't stereo
+        Json::Value inputPorts;
+        inputPorts.resize(0);
         for (int i = 0; i < inPorts; ++i)
         {
             clap_audio_port_info_t inf;
             inst_ports->get(inst, i, true, &inf);
-            std::cout << "    Input " << i << " : name=" << inf.name
-                      << " channels=" << inf.channel_count << std::endl;
+            Json::Value inputPort;
+            inputPort["name"] = inf.name;
+            inputPort["channel-count"] = inf.channel_count;
+            inputPorts.append(inputPort);
+
         }
+        audioPorts["input-ports"] = inputPorts;
+
+        Json::Value outputPorts;
+        outputPorts.resize(0);
         for (int i = 0; i < outPorts; ++i)
         {
             clap_audio_port_info_t inf;
             inst_ports->get(inst, i, false, &inf);
-            std::cout << "    Output " << i << " : name=" << inf.name
-                      << " channels=" << inf.channel_count << std::endl;
+            Json::Value outputPort;
+            outputPort["name"] = inf.name;
+            outputPort["channel-count"] = inf.channel_count;
+            outputPorts.append(outputPort);
         }
+        audioPorts["output-ports"] = outputPorts;
     }
-    else
-    {
-        std::cout << "Audio Ports: Plugin does not implement '" << CLAP_EXT_AUDIO_PORTS << "'" << std::endl;
-    }
+    return audioPorts;
 }
-void showNotePorts(const clap_plugin *inst)
+
+Json::Value showNotePorts(const clap_plugin *inst)
 {
     auto inst_ports =
         (clap_plugin_note_ports_t *)inst->get_extension(inst, CLAP_EXT_NOTE_PORTS);
     int inPorts{0}, outPorts{0};
+
+    Json::Value notePorts;
     if (inst_ports)
     {
         inPorts = inst_ports->count(inst, true);
+        notePorts["input-port-count"] = inPorts;
         outPorts = inst_ports->count(inst, false);
+        notePorts["output-port-count"] = outPorts;
 
-        std::cout << "Note Ports: Plugin has " << inPorts << " input and " << outPorts << " output ports."
-                  << std::endl;
+        auto dial = [](Json::Value& inputPort, auto supported, auto pref) {
 
-        auto dial = [](auto supported, auto pref) {
-            std::ostringstream oss;
-            std::string pre = "";
 #define CHECKD(x) \
                 if (supported & x) {\
-                oss << pre << #x; \
-                if (pref == x)     \
-                oss << " (pref)";   \
-                pre = ", ";  \
+                  inputPort["dialects"].append(#x); \
+                  if (pref == x)     \
+                    inputPort["preferred"] = #x;   \
                 }
 
             CHECKD(CLAP_NOTE_DIALECT_CLAP);
@@ -80,26 +91,35 @@ void showNotePorts(const clap_plugin *inst)
 
 #undef CHECKD
 
-            return oss.str();
         };
+        Json::Value inputPorts;
+        inputPorts.resize(0);
         for (int i = 0; i < inPorts; ++i)
         {
             clap_note_port_info_t inf;
             inst_ports->get(inst, i, true, &inf);
-            std::cout << "    Input " << i << " : name=" << inf.name << " (" << inf.id << ") "
-                      << " dialects=" << dial(inf.supported_dialects, inf.preferred_dialect) << std::endl;
+            Json::Value inputPort;
+            inputPort["id"] = inf.id;
+            inputPort["name"] = inf.name;
+            dial(inputPort, inf.supported_dialects, inf.preferred_dialect);
+            inputPorts.append(inputPort);
         }
+        notePorts["input-ports"] = inputPorts;
+
+        Json::Value outputPorts;
+        outputPorts.resize(0);
         for (int i = 0; i < outPorts; ++i)
         {
             clap_note_port_info_t inf;
             inst_ports->get(inst, i, false, &inf);
-            std::cout << "    Output " << i << " : name=" << inf.name << " (" << inf.id << ") "
-                      << " dialects=" << dial(inf.supported_dialects, inf.preferred_dialect) << std::endl;
+            Json::Value outputPort;
+            outputPort["id"] = inf.id;
+            outputPort["name"] = inf.name;
+            dial(outputPort, inf.supported_dialects, inf.preferred_dialect);
+            outputPorts.append(outputPort);
         }
+        notePorts["output-ports"] = outputPorts;
     }
-    else
-    {
-        std::cout << "Note Ports: Plugin does not implement '" << CLAP_EXT_AUDIO_PORTS << "'" << std::endl;
-    }
+    return notePorts;
 }
 }
