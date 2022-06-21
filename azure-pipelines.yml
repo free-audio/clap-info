@@ -27,9 +27,11 @@ jobs:
 
       - bash: |
           git submodule update --init --recursive
-          cmake -Bbuild -DCMAKE_BUILD_TYPE=Debug
+          cmake -Bbuild -DCMAKE_BUILD_TYPE=Release
         displayName: Submodules and First Cmake
 
       - bash: |
           cmake --build build --target clap-info
+          cmake --build build --target clap-info-zip
+          ls -al build/installer
         displayName: Build clap-info
