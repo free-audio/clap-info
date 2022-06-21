@@ -36,6 +36,34 @@ add_executable(${PROJECT_NAME}
         )
 
 
+add_custom_target(clap-info-zip)
+add_dependencies(clap-info-zip clap-info)
+set(INSTALLER_DIR ${CMAKE_BINARY_DIR}/installer)
+set(INFO_DIR ${INSTALLER_DIR}/clap-info)
+
+add_custom_command(TARGET clap-info-zip
+        POST_BUILD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${INFO_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/README.md ${INFO_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/LICENSE.md ${INFO_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:clap-info> ${INFO_DIR}
+        COMMAND git log -1 > ${INFO_DIR}/version.txt
+        COMMAND git log --pretty=oneline -10 >> ${INFO_DIR}/version.txt
+        )
+
+if (UNIX)
+    add_custom_command(TARGET clap-info-zip
+            POST_BUILD
+            WORKING_DIRECTORY ${INSTALLER_DIR}
+            COMMAND tar cvzf clap-info.tar.gz clap-info )
+else()
+    add_custom_command(TARGET clap-info-zip
+            POST_BUILD
+            WORKING_DIRECTORY ${INSTALLER_DIR}
+            COMMAND  7z a -r clap-info.zip clap-info)
+endif()
+
 if (APPLE)
     target_compile_definitions(${PROJECT_NAME} PRIVATE MAC=1)
     target_sources(${PROJECT_NAME} PRIVATE src/resolve_macosLocations.mm)
@@ -49,6 +77,7 @@ if (APPLE)
             $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=undefined>
     )
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
+
 elseif(UNIX)
     target_compile_definitions(${PROJECT_NAME} PRIVATE LIN=1)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
