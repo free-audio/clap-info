@@ -13,6 +13,15 @@ set(CMAKE_CXX_STANDARD 17)
 add_subdirectory(libs/clap)
 add_subdirectory(libs/CLI11)
 
+add_library(jsoncpp
+        libs/jsoncpp/src/lib_json/json_reader.cpp
+        libs/jsoncpp/src/lib_json/json_value.cpp
+        libs/jsoncpp/src/lib_json/json_writer.cpp
+        )
+target_include_directories(jsoncpp PUBLIC libs/jsoncpp/include)
+target_compile_options(jsoncpp PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-declarations>)
+
+
 # use asan as an option (currently mac only)
 option(USE_USE_SANITIZER "Build and link with ASAN" FALSE)
 
@@ -25,6 +34,7 @@ add_executable(${PROJECT_NAME}
         src/info-pathscan.cpp
         src/info-ports.cpp
         )
+
 
 if (APPLE)
     target_compile_definitions(${PROJECT_NAME} PRIVATE MAC=1)
@@ -48,4 +58,4 @@ else()
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)
-target_link_libraries(${PROJECT_NAME} PRIVATE clap-core CLI11)
+target_link_libraries(${PROJECT_NAME} PRIVATE clap-core CLI11 jsoncpp)
