@@ -159,6 +159,9 @@ int main(int argc, char **argv)
     inst->init(inst);
     inst->activate(inst, 48000, 32, 4096);
 
+    Json::Value root;
+    Json::Value extensions;
+
     if (paramShow)
     {
         clap_info_host::showParams(inst);
@@ -166,13 +169,19 @@ int main(int argc, char **argv)
 
     if (audioPorts)
     {
-        clap_info_host::showAudioPorts(inst);
+        extensions[CLAP_EXT_AUDIO_PORTS] = clap_info_host::showAudioPorts(inst);
     }
 
     if (notePorts)
     {
-        clap_info_host::showNotePorts(inst);
+        extensions[CLAP_EXT_NOTE_PORTS] = clap_info_host::showNotePorts(inst);
     }
+
+    root["extensions"] = extensions;
+
+    Json::StyledWriter writer;
+    std::string out_string = writer.write(root);
+    std::cout << out_string << std::endl;
 
     inst->deactivate(inst);
     inst->destroy(inst);

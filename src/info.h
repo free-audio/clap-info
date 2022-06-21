@@ -7,6 +7,8 @@
 
 #include <clap/clap.h>
 
+#include "json/json.h"
+
 namespace clap_info_host
 {
 
@@ -19,7 +21,7 @@ void recurseAndListCLAPSearchpath(ScanLevel l);
 
 
 void showParams(const clap_plugin *);
-void showAudioPorts(const clap_plugin *);
-void showNotePorts(const clap_plugin *);
+Json::Value showAudioPorts(const clap_plugin *);
+Json::Value showNotePorts(const clap_plugin *);
 }
 #endif // CLAP_INFO_INFO_TYPES_H
