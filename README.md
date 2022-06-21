@@ -7,6 +7,10 @@ debuggers, and so on.
 
 We welcome pull requests and improvements.
 
+Please note we are transitioning the output of this tool to be human
+readable JSON documents rather than unstructured prints. We are some of the
+way there. 
+
 ## To build
 
 ```bash

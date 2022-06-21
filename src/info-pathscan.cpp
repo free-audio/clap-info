@@ -6,14 +6,23 @@
 #include "info.h"
 #include "clap-info-host.h"
 
+#include "json/json.h"
+
 namespace clap_info_host
 {
 void showCLAPSearchpath()
 {
-    std::cout << "CLAP Search Path:" << std::endl;
+    Json::Value root;
+    root["action"] = "system clap file find";
+    Json::Value path;
     auto sp = clap_info_host::validCLAPSearchPaths();
     for (auto q : sp)
-        std::cout << "    " << q.u8string() << std::endl;
+        path.append(q.u8string());
+    root["paths"] = path;
+
+    Json::StyledWriter writer;
+    auto s = writer.write(root);
+    std::cout << s << std::endl;
 }
 
 void recurseAndListCLAPSearchpath(ScanLevel lev)
@@ -40,57 +49,78 @@ void recurseAndListCLAPSearchpath(ScanLevel lev)
 
     if (lev == FIND_FILES)
     {
-        std::cout << "All CLAP files in path\n";
+        Json::Value root;
+        root["action"] = "system clap file find";
+        Json::Value clapsNode;
         for (auto p : claps)
-            std::cout << "  " << p.u8string() << std::endl;
+            clapsNode.append(p.u8string());
+        root["clap-files"] = clapsNode;
+        Json::StyledWriter writer;
+        std::string out_string = writer.write(root);
+        std::cout << out_string << std::endl;
     }
 
     if (lev == FIND_DESCRIPTIONS)
     {
-        std::cout << "System CLAP Scan\n";
+        Json::Value root;
+        root["action"] = "system clap scan";
+
+        Json::Value clapfiles;
         for (auto p : claps)
         {
+            Json::Value thisClap;
+            thisClap["path"] = p.u8string();
             auto entry = clap_info_host::entryFromClapPath(p);
             if (!entry)
             {
-                std::cout << p.u8string() << "   **ERROR: NO CLAP_ENTRY**" << std::endl;
+                thisClap["error"] = ".clap contains no clap_entry";
                 continue;
             }
+
+            thisClap["clap-version"] = std::to_string(entry->clap_version.major)
+                + "." + std::to_string(entry->clap_version.minor) + "." +
+                                         std::to_string(entry->clap_version.revision);
             if (!clap_version_is_compatible(entry->clap_version))
             {
-                std::cout << p.u8string() << "   **ERROR: INCOMPATIBLE VERSION** "
-                          << entry->clap_version.major << "."
-                          << entry->clap_version.minor << "."
-                          << entry->clap_version.revision
-                          << std::endl;
+                thisClap["error"] = "Incompatible clap version";
                 continue;
             }
 
             entry->init(p.u8string().c_str());
             auto fac = (clap_plugin_factory_t *)entry->get_factory(CLAP_PLUGIN_FACTORY_ID);
             auto pc = fac->get_plugin_count(fac);
-            std::cout << p.u8string() << "  : Contains " << pc << " plugin" << (pc > 1 ? "s" : "") << std::endl;
+            thisClap["plugin-count"] = pc;
+
+            Json::Value plugins;
             for (uint32_t pl = 0; pl < pc; ++pl)
             {
+                Json::Value thisPlugin;
                 auto desc = fac->get_plugin_descriptor(fac, pl);
 
-                std::cout << "  Plugin " << pl << " description: \n"
-                          << "    name     : " << desc->name << "\n"
-                          << "    version  : " << desc->version << "\n"
-                          << "    id       : " << desc->id << "\n"
-                          << "    desc     : " << desc->description << "\n"
-                          << "    features : ";
+                thisPlugin["name"] = desc->name;
+                thisPlugin["version"] = desc->version;
+                thisPlugin["id"] = desc->id;
+                thisPlugin["description"] = desc->description;
+
+                Json::Value features;
+
                 auto f = desc->features;
-                auto pre = std::string();
                 while (f[0])
                 {
-                    std::cout << pre << f[0];
-                    pre = ", ";
+                    features.append(f[0]);
                     f++;
                 }
-                std::cout << std::endl;
+                thisPlugin["features"] = features;
+                plugins.append(thisPlugin);
             }
+            thisClap["plugins"] = plugins;
+            clapfiles.append(thisClap);
         }
+
+        root["clap-files"] = clapfiles;
+        Json::StyledWriter writer;
+        std::string out_string = writer.write(root);
+        std::cout << out_string << std::endl;
 
     }
 }
