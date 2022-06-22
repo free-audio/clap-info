@@ -50,7 +50,7 @@ clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
     if (!han)
         return nullptr;
     auto phan = GetProcAddress(han, "clap_entry");
-    std::cout << "phan is " << phan << std::endl;
+//    std::cout << "phan is " << phan << std::endl;
     return (clap_plugin_entry_t *)phan;
 }
 #endif

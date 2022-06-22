@@ -11,39 +11,50 @@
 
 namespace clap_info_host
 {
-void showParams(const clap_plugin *inst)
+Json::Value showParams(const clap_plugin *inst)
 {
     auto inst_param = (clap_plugin_params_t *)inst->get_extension(inst, CLAP_EXT_PARAMS);
+
+    Json::Value pluginParams;
     if (inst_param)
     {
         auto pc = inst_param->count(inst);
-        std::cout << "Plugin has " << pc << " params " << std::endl;
+        pluginParams["param-count"] = pc;
 
+        Json::Value instParams;
+        instParams.resize(0);
         for (auto i = 0U; i < pc; ++i)
         {
             clap_param_info_t inf;
             inst_param->get_info(inst, i, &inf);
 
+            Json::Value instParam;
 
-            std::cout  << std::setw(4) << i << " " << inf.module << " " << inf.name << " (id=0x"
-                      << std::hex << inf.id << std::dec << ")\n    "
-                      << " min/max/def=" << inf.min_value << "/"
-                      << inf.max_value << "/" << inf.default_value;
+            std::stringstream ss;
+            ss << "0x" << std::hex << inf.id;
+            instParam["id"] = ss.str();
+
+            instParam["module"] = inf.module;
+            instParam["name"] = inf.name;
+
+            Json::Value values;
+            values["min"] = inf.min_value;
+            values["max"] = inf.max_value;
+            values["default"] = inf.default_value;
             double d;
             inst_param->get_value(inst, inf.id, &d);
-            std::cout << " val=" << d << " flags=";
+            values["current"] = d;
+            instParam["values"] = values;
 
-            std::string pre = "";
-            auto cp = [&inf, &pre](auto x, auto y) {
+            auto cp = [&inf, &instParam](auto x, auto y) {
                     if (inf.flags & x)
                     {
-                        std::cout << pre << y;
-                        pre = ",";
+                        instParam["flags"].append(y);
                     }
                 };
             cp(CLAP_PARAM_IS_STEPPED, "stepped" );
             cp(CLAP_PARAM_IS_PERIODIC, "periodic");
-            cp (CLAP_PARAM_IS_HIDDEN, "hidden");
+            cp(CLAP_PARAM_IS_HIDDEN, "hidden");
             cp(CLAP_PARAM_IS_READONLY, "readonly");
             cp(CLAP_PARAM_IS_BYPASS, "bypass");
 
@@ -60,12 +71,10 @@ void showParams(const clap_plugin *inst)
             cp(CLAP_PARAM_IS_MODULATABLE_PER_PORT, "mod-port");
 
             cp(CLAP_PARAM_REQUIRES_PROCESS, "requires-process");
-            std::cout << std::endl;
+            instParams.append(instParam);
         }
+        pluginParams["param-info"] = instParams;
     }
-    else
-    {
-        std::cout << "Parameters: Plugin does not implement '" << CLAP_EXT_PARAMS << "'" << std::endl;
-    }
+    return pluginParams;
 }
 }
