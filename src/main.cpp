@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     uint32_t which_plugin{0};
     app.add_option( "--which", which_plugin, "Choose which plugin to create (if the CLAP has more than one)")->default_str("0");
 
-    bool annExt{true};
+    bool annExt{false};
     app.add_option("--announce-extensions", annExt, "Announce extensions queried by plugin.")->default_str("TRUE");
 
     bool descShow{true};
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 #endif
 
 
-    std::cout << "Loading clap        : " << clap << std::endl;
+//    std::cout << "Loading clap        : " << clap << std::endl;
     auto entry = clap_info_host::entryFromClapPath(clapPath);
 
     if (!entry)
@@ -99,9 +99,13 @@ int main(int argc, char **argv)
         exit(3);
     }
 
+    Json::Value root;
+    root["file"] = clap;
+
     auto version = entry->clap_version;
-    std::cout << "Clap Version        : " << version.major << "." << version.minor << "."
-              << version.revision << std::endl;
+    std::stringstream ss;
+    ss << version.major << "." << version.minor << "." << version.revision;
+    root["version"] = ss.str();
 
     entry->init(clap.c_str());
 
@@ -109,33 +113,35 @@ int main(int argc, char **argv)
     auto plugin_count = fac->get_plugin_count(fac);
     if (plugin_count <= 0)
     {
-        std::cout << "Plugin factory has no plugins" << std::endl;
+//        std::cout << "Plugin factory has no plugins" << std::endl;
         exit(4);
     }
-    std::cout << "Plugin Count        : " << plugin_count << std::endl;
+
+    root["plugin-count"] = plugin_count;
 
     if (descShow)
     {
+        Json::Value factory;
+        factory.resize(0);
         for (uint32_t pl = 0; pl < plugin_count; ++pl)
         {
+            Json::Value pluginDescriptor;
             auto desc = fac->get_plugin_descriptor(fac, pl);
 
-            std::cout << "Plugin " << pl << " description: \n"
-                      << "   name     : " << desc->name << "\n"
-                      << "   version  : " << desc->version << "\n"
-                      << "   id       : " << desc->id << "\n"
-                      << "   desc     : " << desc->description << "\n"
-                      << "   features : ";
+            pluginDescriptor["name"] = desc->name;
+            pluginDescriptor["version"] = desc->version;
+            pluginDescriptor["id"] = desc->id;
+            pluginDescriptor["description"] = desc->description;
+
             auto f = desc->features;
-            auto pre = std::string();
             while (f[0])
             {
-                std::cout << pre << f[0];
-                pre = ", ";
+                pluginDescriptor["features"].append(f[0]);
                 f++;
             }
-            std::cout << std::endl;
+            factory.append(pluginDescriptor);
         }
+        root[CLAP_PLUGIN_FACTORY_ID] = factory;
     }
 
     if (!create)
@@ -148,7 +154,7 @@ int main(int argc, char **argv)
     }
 
     auto desc = fac->get_plugin_descriptor(fac, which_plugin);
-    std::cout << "Creating Plugin " << std::setw(3) << which_plugin << " : " << desc->name << " (" << desc->id << ")" << std::endl;
+//    std::cout << "Creating Plugin " << std::setw(3) << which_plugin << " : " << desc->name << " (" << desc->id << ")" << std::endl;
 
 
     // Now lets make an instance
@@ -159,12 +165,11 @@ int main(int argc, char **argv)
     inst->init(inst);
     inst->activate(inst, 48000, 32, 4096);
 
-    Json::Value root;
     Json::Value extensions;
 
     if (paramShow)
     {
-        clap_info_host::showParams(inst);
+        extensions[CLAP_EXT_PARAMS] = clap_info_host::showParams(inst);
     }
 
     if (audioPorts)
@@ -176,6 +181,9 @@ int main(int argc, char **argv)
     {
         extensions[CLAP_EXT_NOTE_PORTS] = clap_info_host::showNotePorts(inst);
     }
+
+    // Probably want to rework this structure
+    root["id"] = desc->id;
 
     root["extensions"] = extensions;
 

@@ -20,7 +20,7 @@ enum ScanLevel {
 void recurseAndListCLAPSearchpath(ScanLevel l);
 
 
-void showParams(const clap_plugin *);
+Json::Value showParams(const clap_plugin *);
 Json::Value showAudioPorts(const clap_plugin *);
 Json::Value showNotePorts(const clap_plugin *);
 }
