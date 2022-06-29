@@ -41,7 +41,7 @@ jobs:
             file_name: clap-info
           - os: windows-latest
             name: win
-            dir_build: ./build/x64/Debug/ALL_BUILD
+            dir_build: ./build/clap-info.dir
             file_name: clap-info
     steps:
       - name: Install Windows dependencies
