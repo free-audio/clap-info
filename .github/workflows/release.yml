@@ -37,8 +37,8 @@ jobs:
           - os: macos-latest
             dir_build: ./build
             file_name: clap_info
-          - dir_build: windows-latest
-            path: ./build
+          - os: windows-latest
+            dir_build: ./build
             file_name: clap_info
     steps:
       - name: Checkout code
