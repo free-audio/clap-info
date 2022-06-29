@@ -56,8 +56,8 @@ jobs:
 
       - name: Compress binary
         run: |
-          cd "${{ inputs.dir_build }}"
-          zip ${{ inputs.file_name }}-${{ matrix.name }}.zip ${{ matrix.file_name }}
+          cd "${{ matrix.dir_build }}"
+          zip ${{ matrix.file_name }}-${{ matrix.name }}.zip ${{ matrix.file_name }}
 
       - name: Upload binary
         uses: actions/upload-release-asset@v1
@@ -65,8 +65,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ${{ inputs.dir_build }}/${{ inputs.file_name }}-${{ matrix.name }}.zip
-          asset_name: ${{ inputs.file_name }}-${{ matrix.name }}.zip
+          asset_path: ${{ matrix.dir_build }}/${{ matrix.file_name }}-${{ matrix.name }}.zip
+          asset_name: ${{ matrix.file_name }}-${{ matrix.name }}.zip
           asset_content_type: application/zip
 
   publish_release:
