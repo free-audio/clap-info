@@ -33,13 +33,13 @@ jobs:
         include:
           - os: ubuntu-latest
             dir_build: ./build
-            file_name: clap_info
+            file_name: clap-info
           - os: macos-latest
             dir_build: ./build
-            file_name: clap_info
+            file_name: clap-info
           - os: windows-latest
             dir_build: ./build
-            file_name: clap_info
+            file_name: clap-info
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
