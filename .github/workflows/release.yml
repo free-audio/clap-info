@@ -41,7 +41,7 @@ jobs:
             file_name: clap-info
           - os: windows-latest
             name: win
-            dir_build: ./build
+            dir_build: ./build/x64
             file_name: clap-info
     steps:
       - name: Install Windows dependencies
@@ -56,7 +56,7 @@ jobs:
       - name: Build binary
         run: |
           cmake -Bbuild
-          cmake --build "${{ matrix.dir_build }}"
+          cmake --build build
 
       - name: List files
         run: ls "${{ matrix.dir_build }}"
