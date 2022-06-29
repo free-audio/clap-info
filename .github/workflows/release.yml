@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_id: ${{ steps.draft_release.outputs.id }}
+      upload_url: ${{ steps.draft_release.outputs.upload_url }}
+    steps:
+      - name: Draft release
+        id: draft_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+
+  build_release:
+    name: Build release
+    needs: create_release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            dir_build: ./build
+            file_name: clap_info
+          - os: macos-latest
+            dir_build: ./build
+            file_name: clap_info
+          - dir_build: windows-latest
+            path: ./build
+            file_name: clap_info
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Build binary
+        run: |
+          cmake -Bbuild
+          cmake --build "${{ matrix.dir_build }}"
+
+      - name: List files
+        run: ls "${{ matrix.dir_build }}"
+
+      - name: Compress binary
+        run: |
+          cd "${{ inputs.dir_build }}"
+          zip ${{ inputs.file_name }}-${{ matrix.name }}.zip ${{ matrix.file_name }}
+
+      - name: Upload binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ${{ inputs.dir_build }}/${{ inputs.file_name }}-${{ matrix.name }}.zip
+          asset_name: ${{ inputs.file_name }}-${{ matrix.name }}.zip
+          asset_content_type: application/zip
+
+  publish_release:
+    name: Publish release
+    needs: [create_release, build_release]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: eregon/publish-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ needs.create_release.outputs.upload_id }}
