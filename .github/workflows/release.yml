@@ -32,12 +32,15 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
+            name: linux
             dir_build: ./build
             file_name: clap-info
           - os: macos-latest
+            name: mac
             dir_build: ./build
             file_name: clap-info
           - os: windows-latest
+            name: win
             dir_build: ./build
             file_name: clap-info
     steps:
