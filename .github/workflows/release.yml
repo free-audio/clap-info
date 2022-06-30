@@ -42,7 +42,8 @@ jobs:
           - os: windows-latest
             name: win
             dir_build: ./build/Release
-            file_name: clap-info.exe
+            file_name: clap-info
+            file_ext: .exe
     steps:
       - name: Install Windows dependencies
         if: matrix.os == 'windows-latest'
@@ -64,7 +65,7 @@ jobs:
       - name: Compress binary
         run: |
           cd "${{ matrix.dir_build }}"
-          zip ${{ matrix.file_name }}-${{ matrix.name }}.zip ${{ matrix.file_name }}
+          zip ${{ matrix.file_name }}-${{ matrix.name }}.zip ${{ matrix.file_name }}${{ matrix.file_ext }}
 
       - name: Upload binary
         uses: actions/upload-release-asset@v1
