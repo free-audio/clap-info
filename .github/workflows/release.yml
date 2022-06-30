@@ -55,7 +55,7 @@ jobs:
 
       - name: Build binary
         run: |
-          cmake -S ./src -B "${{ matrix.dir_build }}"
+          cmake -S . -B "${{ matrix.dir_build }}"
           cmake --build "${{ matrix.dir_build }}" --config Release
 
       - name: List files
