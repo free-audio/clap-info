@@ -41,8 +41,8 @@ jobs:
             file_name: clap-info
           - os: windows-latest
             name: win
-            dir_build: ./build/clap-info.dir/Debug
-            file_name: clap-info
+            dir_build: ./build/Release
+            file_name: clap-info.exe
     steps:
       - name: Install Windows dependencies
         if: matrix.os == 'windows-latest'
@@ -55,8 +55,8 @@ jobs:
 
       - name: Build binary
         run: |
-          cmake -Bbuild
-          cmake --build build
+          cmake -S ./src -B "${{ matrix.dir_build }}"
+          cmake --build "${{ matrix.dir_build }}" --config Release
 
       - name: List files
         run: ls "${{ matrix.dir_build }}"
