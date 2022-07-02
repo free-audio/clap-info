@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_id: ${{ steps.draft_release.outputs.id }}
+      upload_url: ${{ steps.draft_release.outputs.upload_url }}
+    steps:
+      - name: Draft release
+        id: draft_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+
+  build_release:
+    name: Build release
+    needs: create_release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            name: linux
+            dir_build: ./build
+            file_name: clap-info
+          - os: macos-latest
+            name: mac
+            dir_build: ./build
+            file_name: clap-info
+          - os: windows-latest
+            name: win
+            dir_build: ./build/Release
+            file_name: clap-info
+            file_ext: .exe
+    steps:
+      - name: Install Windows dependencies
+        if: matrix.os == 'windows-latest'
+        run: choco install zip
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Build binary
+        run: |
+          cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          cmake --build ./build --config Release
+
+      - name: List files
+        run: ls "${{ matrix.dir_build }}"
+
+      - name: Compress binary
+        run: |
+          cd "${{ matrix.dir_build }}"
+          zip ${{ matrix.file_name }}-${{ matrix.name }}.zip ${{ matrix.file_name }}${{ matrix.file_ext }}
+
+      - name: Upload binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ${{ matrix.dir_build }}/${{ matrix.file_name }}-${{ matrix.name }}.zip
+          asset_name: ${{ matrix.file_name }}-${{ matrix.name }}.zip
+          asset_content_type: application/zip
+
+  publish_release:
+    name: Publish release
+    needs: [create_release, build_release]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: eregon/publish-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ needs.create_release.outputs.upload_id }}
