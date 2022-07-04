@@ -1,31 +1,13 @@
-name: Release
+name: Feature
 
 on:
-  push:
-    tags:
-      - "v*"
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  create_release:
-    name: Create release
-    runs-on: ubuntu-latest
-    outputs:
-      upload_id: ${{ steps.draft_release.outputs.id }}
-      upload_url: ${{ steps.draft_release.outputs.upload_url }}
-    steps:
-      - name: Draft release
-        id: draft_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: true
-
-  build_release:
-    name: Build release
-    needs: create_release
+  build_feature:
+    name: Build feature
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -71,22 +53,7 @@ jobs:
           zip ${{ matrix.file_name }}-${{ matrix.name }}.zip ${{ matrix.file_name }}${{ matrix.file_ext }}
 
       - name: Upload binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/upload-artifact@v3
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ${{ matrix.dir_build }}/${{ matrix.file_name }}-${{ matrix.name }}.zip
-          asset_name: ${{ matrix.file_name }}-${{ matrix.name }}.zip
-          asset_content_type: application/zip
-
-  publish_release:
-    name: Publish release
-    needs: [create_release, build_release]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: eregon/publish-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        release_id: ${{ needs.create_release.outputs.upload_id }}
+          name: ${{ matrix.file_name }}-${{ matrix.name }}.zip
+          path: ${{ matrix.dir_build }}/${{ matrix.file_name }}-${{ matrix.name }}.zip
