@@ -63,7 +63,7 @@ jobs:
         run: ls "${{ matrix.dir_build }}"
 
       - name: Test binary
-        run: ${{ matrix.dir_build }}/ ${{ matrix.file_name }}${{ matrix.file_ext }} -h
+        run: ${{ matrix.dir_build }}/${{ matrix.file_name }}${{ matrix.file_ext }} -h
 
       - name: Compress binary
         run: |
