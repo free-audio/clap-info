@@ -45,12 +45,6 @@ Json::Value createGuiJson(const clap_plugin *inst)
         {
             res["preferred_api"] = std::string(prefA) + (fl ? ".floating" : "");
         }
-
-        if (inst_gui->can_resize(inst))
-        {
-            res["can_resize"] = "true";
-        }
-
     }
     return res;
 }
