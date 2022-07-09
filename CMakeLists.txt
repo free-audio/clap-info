@@ -70,9 +70,9 @@ endif()
 if (APPLE)
     target_compile_definitions(clap-scanner PUBLIC MAC=1)
     target_sources(clap-scanner PRIVATE src/clap-scanner/resolve_macosLocations.mm)
+    target_link_libraries(clap-scanner PUBLIC dl "-framework CoreFoundation" "-framework Foundation")
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE MAC=1)
-    target_link_libraries(${PROJECT_NAME} PRIVATE dl "-framework CoreFoundation" "-framework Foundation")
     target_compile_options(${PROJECT_NAME} PRIVATE
             $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=address>
             $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=undefined>
@@ -85,8 +85,8 @@ if (APPLE)
 
 elseif(UNIX)
     target_compile_definitions(clap-scanner PUBLIC LIN=1)
+    target_link_libraries(clap-scanner PUBLIC -ldl)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
-    target_link_libraries(${PROJECT_NAME} PRIVATE -ldl)
 else()
     target_compile_definitions(clap-scanner PUBLIC WIN=1)
 endif()

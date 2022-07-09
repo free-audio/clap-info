@@ -44,7 +44,7 @@ void getSystemPaths(std::vector<std::filesystem::path> &);
 #endif
 
 #if WIN
-const clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
+const clap_plugin_entry_t *entryFromCLAPPath(const std::filesystem::path &p)
 {
     auto han = LoadLibrary((LPCSTR)(p.generic_string().c_str()));
     if (!han)
@@ -57,7 +57,7 @@ const clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
 
 
 #if LIN
-const clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
+const clap_plugin_entry_t *entryFromCLAPPath(const std::filesystem::path &p)
 {
     void    *handle;
     int     *iptr;
