@@ -118,7 +118,7 @@ Json::Value createNoteNameJson(const clap_plugin *inst)
         if (ct > 0)
         {
             Json::Value names;
-            for (auto i = 0; i < inst_notename->count(inst); ++i)
+            for (uint32_t i = 0; i < inst_notename->count(inst); ++i)
             {
                 clap_note_name_t nn;
                 inst_notename->get(inst, i, &nn);
@@ -151,7 +151,7 @@ Json::Value createAudioPortsConfigJson(const clap_plugin *inst)
         if (ct > 0)
         {
             Json::Value cfgs;
-            for (auto i = 0; i < inst_apc->count(inst); ++i)
+            for (uint32_t i = 0; i < inst_apc->count(inst); ++i)
             {
                 clap_audio_ports_config apc;
                 inst_apc->get(inst, i, &apc);
