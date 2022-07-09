@@ -2,7 +2,7 @@
 // Created by Paul Walker on 5/13/22.
 //
 
-#include "clap-info-host.h"
+#include "clap-scanner/scanner.h"
 #include <iostream>
 
 #if MAC
@@ -18,10 +18,10 @@
 #include <dlfcn.h>
 #endif
 
-namespace clap_info_host
+namespace clap_scanner
 {
 #if MAC
-clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
+const clap_plugin_entry_t *entryFromCLAPPath(const std::filesystem::path &p)
 {
     auto ps = p.u8string();
     auto cs = CFStringCreateWithBytes(kCFAllocatorDefault, (uint8_t *)ps.c_str(), ps.size(),
@@ -44,7 +44,7 @@ void getSystemPaths(std::vector<std::filesystem::path> &);
 #endif
 
 #if WIN
-clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
+const clap_plugin_entry_t *entryFromCLAPPath(const std::filesystem::path &p)
 {
     auto han = LoadLibrary((LPCSTR)(p.generic_string().c_str()));
     if (!han)
@@ -57,7 +57,7 @@ clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
 
 
 #if LIN
-clap_plugin_entry_t *entryFromClapPath(const std::filesystem::path &p)
+const clap_plugin_entry_t *entryFromCLAPPath(const std::filesystem::path &p)
 {
     void    *handle;
     int     *iptr;

@@ -2,13 +2,27 @@
 #include <filesystem>
 
 #include "clap-info-host.h"
+#include "clap-scanner/scanner.h"
+#include "clap/plugin-factory.h"
 
-#include <clap/plugin-factory.h>
+#include "info.h"
 
+#include "CLI11/CLI11.hpp"
 
-#include <info.h>
-
-#include <CLI11/CLI11.hpp>
+struct CLAPInfoJsonRoot
+{
+    Json::Value root;
+    bool active{true};
+    ~CLAPInfoJsonRoot()
+    {
+        if (active)
+        {
+            Json::StyledWriter writer;
+            std::string out_string = writer.write(root);
+            std::cout << out_string << std::endl;
+        }
+    }
+};
 
 int main(int argc, char **argv)
 {
@@ -53,53 +67,104 @@ int main(int argc, char **argv)
 
     CLI11_PARSE(app, argc, argv);
 
+    CLAPInfoJsonRoot doc;
+
     if (searchPath)
     {
-        clap_info_host::showCLAPSearchpath();
-        exit(0);
+        doc.root["action"] = "display clap search paths";
+        Json::Value res;
+        auto sp = clap_scanner::validCLAPSearchPaths();
+        for (const auto &q : sp)
+            res.append(q.u8string());
+        doc.root["result"] = res;
+
+        return 0;
     }
 
     if (showClaps)
     {
-        clap_info_host::recurseAndListCLAPSearchpath(clap_info_host::FIND_FILES);
-        exit(0);
+        doc.root["action"] = "display paths for installed claps";
+        Json::Value res;
+        auto sp = clap_scanner::installedCLAPs();
+        for (const auto &q : sp)
+            res.append(q.u8string());
+        doc.root["result"] = res;
+
+        return 0;
     }
 
 
     if (showClapsWithDesc)
     {
-        clap_info_host::recurseAndListCLAPSearchpath(clap_info_host::FIND_DESCRIPTIONS);
-        exit(0);
+        doc.root["action"] = "display descriptions for installed claps";
+        Json::Value res;
+        auto sp = clap_scanner::installedCLAPs();
+        for (const auto &q : sp)
+        {
+            Json::Value entryJson;
+            if (auto entry = clap_scanner::entryFromCLAPPath(q))
+            {
+                entryJson["path"] = q.u8string();
+                entryJson["clap-version"] = std::to_string(entry->clap_version.major)
+                                           + "." + std::to_string(entry->clap_version.minor) + "." +
+                                           std::to_string(entry->clap_version.revision);
+                entryJson["plugins"] = Json::Value();
+                clap_scanner::foreachCLAPDescription(entry, [&entryJson](const clap_plugin_descriptor_t *desc) {
+                    Json::Value thisPlugin;
+                    thisPlugin["name"] = desc->name;
+                    thisPlugin["version"] = desc->version;
+                    thisPlugin["id"] = desc->id;
+                    thisPlugin["description"] = desc->description;
+
+                    Json::Value features;
+
+                    auto f = desc->features;
+                    while (f[0])
+                    {
+                        features.append(f[0]);
+                        f++;
+                    }
+                    thisPlugin["features"] = features;
+                    entryJson["plugins"].append(thisPlugin);
+                });
+                res.append(entryJson);
+            }
+        }
+        doc.root["result"] = res;
+        return 0;
     }
 
     auto clapPath = std::filesystem::path(clap);
 #if MAC
     if (!(std::filesystem::is_directory(clapPath) || std::filesystem::is_regular_file(clapPath)))
     {
-        std::cout << "Your file '" << clap << "' is neither a bundle nor a file" << std::endl;
-        exit(2);
+        std::cerr << "Your file '" << clap << "' is neither a bundle nor a file" << std::endl;
+        doc.active = false;
+        return 2;
     }
 #else
     if (!std::filesystem::is_regular_file(clapPath))
     {
-        std::cout << "Your file '" << clap << "' is not a regular file" << std::endl;
-        exit(2);
+        std::cerr << "Your file '" << clap << "' is not a regular file" << std::endl;
+        doc.active = false;
+        return 2;
     }
 #endif
 
 
 //    std::cout << "Loading clap        : " << clap << std::endl;
-    auto entry = clap_info_host::entryFromClapPath(clapPath);
+    auto entry = clap_scanner::entryFromCLAPPath(clapPath);
 
     if (!entry)
     {
-        std::cout << "   clap_entry returned a nullptr\n"
+        std::cerr << "   clap_entry returned a nullptr\n"
                   << "   either this plugin is not a CLAP or it has exported the incorrect symbol."
                   << std::endl;
-        exit(3);
+        doc.active = false;
+        return 3;
     }
 
-    Json::Value root;
+    Json::Value &root = doc.root;
     root["file"] = clap;
 
     auto version = entry->clap_version;
@@ -113,8 +178,9 @@ int main(int argc, char **argv)
     auto plugin_count = fac->get_plugin_count(fac);
     if (plugin_count <= 0)
     {
-//        std::cout << "Plugin factory has no plugins" << std::endl;
-        exit(4);
+        std::cerr << "Plugin factory has no plugins" << std::endl;
+        doc.active = 0;
+        return 4;
     }
 
     root["plugin-count"] = plugin_count;
@@ -145,16 +211,18 @@ int main(int argc, char **argv)
     }
 
     if (!create)
-        exit(0);
+    {
+        return 0;
+    }
 
     if (which_plugin < 0 || which_plugin >= plugin_count)
     {
-        std::cout << "Unable to create plugin " << which_plugin << " which must be between 0 and " << plugin_count - 1 << std::endl;
-        exit(4);
+        std::cerr << "Unable to create plugin " << which_plugin << " which must be between 0 and " << plugin_count - 1 << std::endl;
+        doc.active = false;
+        return 4;
     }
 
     auto desc = fac->get_plugin_descriptor(fac, which_plugin);
-//    std::cout << "Creating Plugin " << std::setw(3) << which_plugin << " : " << desc->name << " (" << desc->id << ")" << std::endl;
 
 
     // Now lets make an instance
@@ -187,12 +255,10 @@ int main(int argc, char **argv)
 
     root["extensions"] = extensions;
 
-    Json::StyledWriter writer;
-    std::string out_string = writer.write(root);
-    std::cout << out_string << std::endl;
-
     inst->deactivate(inst);
     inst->destroy(inst);
 
     entry->deinit();
+
+    return 0;
 }

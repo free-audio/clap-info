@@ -1,38 +1,41 @@
 cmake_minimum_required(VERSION 3.20)
 cmake_policy(SET CMP0091 NEW)
 
-# This only needs macos 15 due to std::filesystem, not clap
+# CLAP supports standard C; but this validator uses std::filesystem so requires C++ 17
+# and macOS 10.15
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15 CACHE STRING "Minimum macOS version")
 
 project(clap-info VERSION 0.1.0 LANGUAGES C CXX)
-
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-# CLAP supports standard C; but this validator uses std::filesystem so requires C++ 17
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(libs/clap)
-add_subdirectory(libs/CLI11)
-
-add_library(jsoncpp
-        libs/jsoncpp/src/lib_json/json_reader.cpp
-        libs/jsoncpp/src/lib_json/json_value.cpp
-        libs/jsoncpp/src/lib_json/json_writer.cpp
-        )
-target_include_directories(jsoncpp PUBLIC libs/jsoncpp/include)
-target_compile_options(jsoncpp PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-declarations>)
-
-
-# use asan as an option (currently mac only)
+# Build-time options
+# Use a different version of clap
+if (NOT DEFINED ${CLAP_INFO_CLAP_DIR})
+    set(CLAP_INFO_CLAP_DIR "libs/clap" CACHE STRING "Location of the CLAP cmake project")
+endif()
+# Use the Address Sanitizer (currently macOS only)
 option(USE_USE_SANITIZER "Build and link with ASAN" FALSE)
 
-add_executable(${PROJECT_NAME}
-        src/main.cpp
-        src/clap-info-host.cpp
-        src/resolve_entrypoint.cpp
 
-        src/info-params.cpp
-        src/info-pathscan.cpp
-        src/info-ports.cpp
+add_subdirectory(libs)
+message(STATUS "Using CLAP installed from ${CLAP_INFO_CLAP_DIR}")
+add_subdirectory(${CLAP_INFO_CLAP_DIR})
+
+add_library(clap-scanner
+        src/clap-scanner/resolve_entrypoint.cpp
+        src/clap-scanner/scanner.cpp
+        )
+
+target_include_directories(clap-scanner PUBLIC include)
+target_link_libraries(clap-scanner PUBLIC clap-core)
+
+add_executable(${PROJECT_NAME}
+        src/clap-info/main.cpp
+        src/clap-info/clap-info-host.cpp
+
+        src/clap-info/info-params.cpp
+        src/clap-info/info-ports.cpp
         )
 
 
@@ -65,9 +68,11 @@ else()
 endif()
 
 if (APPLE)
+    target_compile_definitions(clap-scanner PUBLIC MAC=1)
+    target_sources(clap-scanner PRIVATE src/clap-scanner/resolve_macosLocations.mm)
+    target_link_libraries(clap-scanner PUBLIC dl "-framework CoreFoundation" "-framework Foundation")
+
     target_compile_definitions(${PROJECT_NAME} PRIVATE MAC=1)
-    target_sources(${PROJECT_NAME} PRIVATE src/resolve_macosLocations.mm)
-    target_link_libraries(${PROJECT_NAME} PRIVATE dl "-framework CoreFoundation" "-framework Foundation")
     target_compile_options(${PROJECT_NAME} PRIVATE
             $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=address>
             $<$<BOOL:${USE_SANITIZER}>:-fUSE_SANITIZER=undefined>
@@ -79,12 +84,12 @@ if (APPLE)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
 
 elseif(UNIX)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE LIN=1)
+    target_compile_definitions(clap-scanner PUBLIC LIN=1)
+    target_link_libraries(clap-scanner PUBLIC -ldl)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
-    target_link_libraries(${PROJECT_NAME} PRIVATE -ldl)
 else()
-    target_compile_definitions(${PROJECT_NAME} PRIVATE WIN=1)
+    target_compile_definitions(clap-scanner PUBLIC WIN=1)
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)
-target_link_libraries(${PROJECT_NAME} PRIVATE clap-core CLI11 jsoncpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE CLI11 jsoncpp clap-scanner)
