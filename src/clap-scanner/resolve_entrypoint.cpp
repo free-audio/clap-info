@@ -1,6 +1,14 @@
-//
-// Created by Paul Walker on 5/13/22.
-//
+/*
+ * CLAP-INFO
+ *
+ * https://github.com/free-audio/clap-info
+ *
+ * CLAP-INFO is Free and Open Source software, released under the MIT
+ * License, a copy of which is included with this source in the file
+ * "LICENSE.md"
+ *
+ * Copyright (c) 2022 Various Authors, per the Git Transaction Log
+ */
 
 #include "clap-scanner/scanner.h"
 #include <iostream>
@@ -50,17 +58,16 @@ const clap_plugin_entry_t *entryFromCLAPPath(const std::filesystem::path &p)
     if (!han)
         return nullptr;
     auto phan = GetProcAddress(han, "clap_entry");
-//    std::cout << "phan is " << phan << std::endl;
+    //    std::cout << "phan is " << phan << std::endl;
     return (clap_plugin_entry_t *)phan;
 }
 #endif
 
-
 #if LIN
 const clap_plugin_entry_t *entryFromCLAPPath(const std::filesystem::path &p)
 {
-    void    *handle;
-    int     *iptr;
+    void *handle;
+    int *iptr;
 
     handle = dlopen(p.u8string().c_str(), RTLD_LOCAL | RTLD_LAZY);
 
@@ -95,13 +102,12 @@ std::vector<std::filesystem::path> validCLAPSearchPaths()
         auto q = getenv("LOCALAPPDATA");
         if (q)
         {
-            res.emplace_back(std::filesystem::path{q} / "Programs" / "Common" / "CLAP" );
+            res.emplace_back(std::filesystem::path{q} / "Programs" / "Common" / "CLAP");
         }
-
     }
 #endif
 
-    auto p = getenv( "CLAP_PATH" );
+    auto p = getenv("CLAP_PATH");
 
     if (p)
     {
@@ -113,10 +119,10 @@ std::vector<std::filesystem::path> validCLAPSearchPaths()
         auto cp = std::string(p);
 
         size_t pos;
-        while((pos = cp.find(sep)) != std::string::npos)
+        while ((pos = cp.find(sep)) != std::string::npos)
         {
             auto item = cp.substr(0, pos);
-            cp = cp.substr(pos+1);
+            cp = cp.substr(pos + 1);
             res.emplace_back(std::filesystem::path{item});
         }
         if (cp.size())
@@ -126,5 +132,4 @@ std::vector<std::filesystem::path> validCLAPSearchPaths()
     return res;
 }
 
-
-} // namespace clap_info_host
+} // namespace clap_scanner

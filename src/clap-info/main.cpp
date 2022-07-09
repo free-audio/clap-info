@@ -1,3 +1,15 @@
+/*
+ * CLAP-INFO
+ *
+ * https://github.com/free-audio/clap-info
+ *
+ * CLAP-INFO is Free and Open Source software, released under the MIT
+ * License, a copy of which is included with this source in the file
+ * "LICENSE.md"
+ *
+ * Copyright (c) 2022 Various Authors, per the Git Transaction Log
+ */
+
 #include <iostream>
 #include <filesystem>
 
@@ -28,45 +40,60 @@ int main(int argc, char **argv)
 {
     CLI::App app("clap-info: CLAP command line validation tool");
 
-    app.set_version_flag("--version", "0.0.0");
+    app.set_version_flag("--version", "0.9.0");
     std::string clap;
     app.add_option("-f,--file,file", clap, "CLAP plugin file location");
 
-    bool create{true};
-    app.add_option("--create", create, "Choose whether to create an instance of the plugin or just scan the entry.")->default_str("TRUE");
-
-    uint32_t which_plugin{0};
-    app.add_option( "--which", which_plugin, "Choose which plugin to create (if the CLAP has more than one)")->default_str("0");
-
-    bool annExt{false};
-    app.add_option("--announce-extensions", annExt, "Announce extensions queried by plugin.")->default_str("TRUE");
-
-    bool descShow{true};
-    app.add_option("--descriptions", descShow, "Show the descriptions of the plugins in this CLAP")->default_str("TRUE");
-
-    bool paramShow{true};
-    app.add_option( "--params", paramShow, "Print plugin parameters.")->default_str("TRUE");
-
-    int paramVerbosity{2};
-    app.add_option( "--param-verbosity", paramVerbosity, "How verbosely to display/query params (1-4)")->default_str("2");
-
-    bool audioPorts{true};
-    app.add_option( "--audio-ports", audioPorts, "Display the Audio Ports configuration")->default_str("TRUE");
-
-    bool notePorts{true};
-    app.add_option( "--note-ports", notePorts, "Display the Note Ports configuration")->default_str("TRUE");
-
-    bool otherExt{true};
-    app.add_option( "--other-ext", otherExt, "Display brief information about all other extensions")->default_str("TRUE");
-
-    bool searchPath{false};
-    app.add_flag( "--search-path", searchPath, "Show the CLAP plugin search paths then exit");
-
     bool showClaps{false};
-    app.add_flag( "-l,--list-clap-files", showClaps, "Show all CLAP files in the search path then exit");
+    app.add_flag("-l,--list-clap-files", showClaps,
+                 "Show all CLAP files in the search path then exit");
 
     bool showClapsWithDesc{false};
-    app.add_flag( "-s,--scan-clap-files", showClapsWithDesc, "Show all descriptions in all CLAP files in the search path, then exit");
+    app.add_flag("-s,--scan-clap-files", showClapsWithDesc,
+                 "Show all descriptions in all CLAP files in the search path, then exit");
+
+    bool create{true};
+    app.add_option("--create", create,
+                   "Choose whether to create an instance of the plugin or just scan the entry.")
+        ->default_str("TRUE");
+
+    uint32_t which_plugin{0};
+    app.add_option("--which", which_plugin,
+                   "Choose which plugin to create (if the CLAP has more than one)")
+        ->default_str("0");
+
+    bool annExt{false};
+    app.add_option("--announce-extensions", annExt, "Announce extensions queried by plugin.")
+        ->default_str("FALSE");
+
+    bool descShow{true};
+    app.add_option("--descriptions", descShow, "Show the descriptions of the plugins in this CLAP")
+        ->default_str("TRUE");
+
+    bool paramShow{true};
+    app.add_option("--params", paramShow, "Print plugin parameters.")->default_str("TRUE");
+
+    /*int paramVerbosity{2};
+    app.add_option("--param-verbosity", paramVerbosity,
+                   "How verbosely to display/query params (1-4)")
+        ->default_str("2");
+        */
+
+    bool audioPorts{true};
+    app.add_option("--audio-ports", audioPorts, "Display the Audio Ports configuration")
+        ->default_str("TRUE");
+
+    bool notePorts{true};
+    app.add_option("--note-ports", notePorts, "Display the Note Ports configuration")
+        ->default_str("TRUE");
+
+    bool otherExt{true};
+    app.add_option("--other-ext", otherExt, "Display brief information about all other extensions")
+        ->default_str("TRUE");
+
+    bool searchPath{false};
+    app.add_flag("--search-path", searchPath, "Show the CLAP plugin search paths then exit");
+
 
     CLI11_PARSE(app, argc, argv);
 
@@ -96,7 +123,6 @@ int main(int argc, char **argv)
         return 0;
     }
 
-
     if (showClapsWithDesc)
     {
         doc.root["action"] = "display descriptions for installed claps";
@@ -108,28 +134,50 @@ int main(int argc, char **argv)
             if (auto entry = clap_scanner::entryFromCLAPPath(q))
             {
                 entryJson["path"] = q.u8string();
-                entryJson["clap-version"] = std::to_string(entry->clap_version.major)
-                                           + "." + std::to_string(entry->clap_version.minor) + "." +
-                                           std::to_string(entry->clap_version.revision);
+                entryJson["clap-version"] = std::to_string(entry->clap_version.major) + "." +
+                                            std::to_string(entry->clap_version.minor) + "." +
+                                            std::to_string(entry->clap_version.revision);
                 entryJson["plugins"] = Json::Value();
-                clap_scanner::foreachCLAPDescription(entry, [&entryJson](const clap_plugin_descriptor_t *desc) {
-                    Json::Value thisPlugin;
-                    thisPlugin["name"] = desc->name;
-                    thisPlugin["version"] = desc->version;
-                    thisPlugin["id"] = desc->id;
-                    thisPlugin["description"] = desc->description;
+                clap_scanner::foreachCLAPDescription(
+                    entry, [&entryJson](const clap_plugin_descriptor_t *desc) {
+                        Json::Value thisPlugin;
+                        thisPlugin["name"] = desc->name;
+                        thisPlugin["version"] = desc->version;
+                        thisPlugin["id"] = desc->id;
+                        thisPlugin["description"] = desc->description;
 
-                    Json::Value features;
+                        Json::Value features;
 
-                    auto f = desc->features;
-                    while (f[0])
-                    {
-                        features.append(f[0]);
-                        f++;
-                    }
-                    thisPlugin["features"] = features;
-                    entryJson["plugins"].append(thisPlugin);
-                });
+                        auto f = desc->features;
+                        int idx = 0;
+                        while (f[0])
+                        {
+                            bool nullWithinSize{false};
+                            for (int i = 0; i < CLAP_NAME_SIZE; ++i)
+                            {
+                                if (f[0][i] == 0)
+                                {
+                                    nullWithinSize = true;
+                                }
+                            }
+
+                            if (!nullWithinSize)
+                            {
+                                std::cerr
+                                    << "Feature element at index " << idx
+                                    << " lacked null within CLAP_NAME_SIZE."
+                                    << "This means either a feature at this index overflowed or "
+                                       "you didn't null terminate your "
+                                    << "features array" << std::endl;
+                                break;
+                            }
+                            features.append(f[0]);
+                            f++;
+                            idx++;
+                        }
+                        thisPlugin["features"] = features;
+                        entryJson["plugins"].append(thisPlugin);
+                    });
                 res.append(entryJson);
             }
         }
@@ -154,8 +202,7 @@ int main(int argc, char **argv)
     }
 #endif
 
-
-//    std::cout << "Loading clap        : " << clap << std::endl;
+    //    std::cout << "Loading clap        : " << clap << std::endl;
     auto entry = clap_scanner::entryFromCLAPPath(clapPath);
 
     if (!entry)
@@ -220,7 +267,8 @@ int main(int argc, char **argv)
 
     if (which_plugin < 0 || which_plugin >= plugin_count)
     {
-        std::cerr << "Unable to create plugin " << which_plugin << " which must be between 0 and " << plugin_count - 1 << std::endl;
+        std::cerr << "Unable to create plugin " << which_plugin << " which must be between 0 and "
+                  << plugin_count - 1 << std::endl;
         doc.active = false;
         return 4;
     }
@@ -244,14 +292,12 @@ int main(int argc, char **argv)
         }
         root["descriptor"] = pluginDescriptor;
         root["plugin-index"] = which_plugin;
-
     }
 
     auto desc = fac->get_plugin_descriptor(fac, which_plugin);
 
-
     // Now lets make an instance
-    auto host = clap_info_host::createClapValHost();
+    auto host = clap_info_host::createCLAPInfoHost();
     clap_info_host::getHostConfig()->announceQueriedExtensions = annExt;
     auto inst = fac->create_plugin(fac, host, desc->id);
 
@@ -294,7 +340,6 @@ int main(int argc, char **argv)
             extensions[ext] = r;
         }
     }
-
 
     root["extensions"] = extensions;
 

@@ -1,6 +1,14 @@
-//
-// Created by Paul Walker on 7/9/22.
-//
+/*
+ * CLAP-INFO
+ *
+ * https://github.com/free-audio/clap-info
+ *
+ * CLAP-INFO is Free and Open Source software, released under the MIT
+ * License, a copy of which is included with this source in the file
+ * "LICENSE.md"
+ *
+ * Copyright (c) 2022 Various Authors, per the Git Transaction Log
+ */
 
 #include "clap-scanner/scanner.h"
 
@@ -39,7 +47,8 @@ std::vector<std::filesystem::path> installedCLAPs()
     return claps;
 }
 
-bool foreachCLAPDescription(const clap_plugin_entry_t *entry, std::function<void(const clap_plugin_descriptor_t*)> cb)
+bool foreachCLAPDescription(const clap_plugin_entry_t *entry,
+                            std::function<void(const clap_plugin_descriptor_t *)> cb)
 {
     auto fac = (clap_plugin_factory_t *)entry->get_factory(CLAP_PLUGIN_FACTORY_ID);
     if (!fac)
@@ -60,4 +69,4 @@ bool foreachCLAPDescription(const clap_plugin_entry_t *entry, std::function<void
     }
     return true;
 }
-}
+} // namespace clap_scanner
