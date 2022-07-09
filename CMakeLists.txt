@@ -36,6 +36,7 @@ add_executable(${PROJECT_NAME}
 
         src/clap-info/info-params.cpp
         src/clap-info/info-ports.cpp
+        src/clap-info/info-other-extensions.cpp
         )
 
 

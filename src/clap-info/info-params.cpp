@@ -11,7 +11,7 @@
 
 namespace clap_info_host
 {
-Json::Value showParams(const clap_plugin *inst)
+Json::Value createParamsJson(const clap_plugin *inst)
 {
     auto inst_param = (clap_plugin_params_t *)inst->get_extension(inst, CLAP_EXT_PARAMS);
 

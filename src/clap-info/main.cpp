@@ -56,6 +56,13 @@ int main(int argc, char **argv)
     bool notePorts{true};
     app.add_option( "--note-ports", notePorts, "Display the Note Ports configuration")->default_str("TRUE");
 
+    bool latency{true};
+    app.add_option( "--latency", latency, "Display the latency configuration")->default_str("TRUE");
+
+    bool gui{true};
+    app.add_option( "--gui", notePorts, "Display the gui configuration")->default_str("TRUE");
+
+
     bool searchPath{false};
     app.add_flag( "--search-path", searchPath, "Show the CLAP plugin search paths then exit");
 
@@ -237,17 +244,32 @@ int main(int argc, char **argv)
 
     if (paramShow)
     {
-        extensions[CLAP_EXT_PARAMS] = clap_info_host::showParams(inst);
+        extensions[CLAP_EXT_PARAMS] = clap_info_host::createParamsJson(inst);
     }
 
     if (audioPorts)
     {
-        extensions[CLAP_EXT_AUDIO_PORTS] = clap_info_host::showAudioPorts(inst);
+        extensions[CLAP_EXT_AUDIO_PORTS] = clap_info_host::createAudioPortsJson(inst);
     }
 
     if (notePorts)
     {
-        extensions[CLAP_EXT_NOTE_PORTS] = clap_info_host::showNotePorts(inst);
+        extensions[CLAP_EXT_NOTE_PORTS] = clap_info_host::createNotePortsJson(inst);
+    }
+
+    if (latency)
+    {
+        extensions[CLAP_EXT_LATENCY] = clap_info_host::createLatencyJson(inst);
+    }
+
+    if (latency)
+    {
+        extensions[CLAP_EXT_LATENCY] = clap_info_host::createLatencyJson(inst);
+    }
+
+    if (gui)
+    {
+        extensions[CLAP_EXT_GUI] = clap_info_host::createGuiJson(inst);
     }
 
     // Probably want to rework this structure

@@ -16,7 +16,7 @@
 namespace clap_info_host
 {
 
-Json::Value showAudioPorts(const clap_plugin *inst)
+Json::Value createAudioPortsJson(const clap_plugin *inst)
 {
     auto inst_ports =
         (clap_plugin_audio_ports_t *)inst->get_extension(inst, CLAP_EXT_AUDIO_PORTS);
@@ -60,7 +60,7 @@ Json::Value showAudioPorts(const clap_plugin *inst)
     return audioPorts;
 }
 
-Json::Value showNotePorts(const clap_plugin *inst)
+Json::Value createNotePortsJson(const clap_plugin *inst)
 {
     auto inst_ports =
         (clap_plugin_note_ports_t *)inst->get_extension(inst, CLAP_EXT_NOTE_PORTS);

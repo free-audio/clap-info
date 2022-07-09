@@ -12,15 +12,11 @@
 namespace clap_info_host
 {
 
-enum ScanLevel {
-    FIND_FILES,
-    FIND_DESCRIPTIONS
-};
-void recurseAndListCLAPSearchpath(ScanLevel l);
 
-
-Json::Value showParams(const clap_plugin *);
-Json::Value showAudioPorts(const clap_plugin *);
-Json::Value showNotePorts(const clap_plugin *);
+Json::Value createParamsJson(const clap_plugin *inst);
+Json::Value createAudioPortsJson(const clap_plugin *inst);
+Json::Value createNotePortsJson(const clap_plugin *inst);
+Json::Value createLatencyJson(const clap_plugin *inst);
+Json::Value createGuiJson(const clap_plugin *inst);
 }
 #endif // CLAP_INFO_INFO_TYPES_H
