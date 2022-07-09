@@ -4,7 +4,7 @@
 
 #include <Foundation/Foundation.h>
 
-namespace clap_info_host
+namespace clap_scanner
 {
 
 void getSystemPaths(std::vector<std::filesystem::path> &res)

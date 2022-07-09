@@ -6,9 +6,8 @@
 #include <iostream>
 #include <sstream>
 
-#include <clap/ext/audio-ports.h>
-#include <clap/ext/note-ports.h>
-
+#include "clap/ext/audio-ports.h"
+#include "clap/ext/note-ports.h"
 
 #include "info.h"
 
