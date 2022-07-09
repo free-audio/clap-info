@@ -1,10 +1,14 @@
-//
-// Created by Paul Walker on 6/17/22.
-//
-
-
-#include <iostream>
-#include <sstream>
+/*
+ * CLAP-INFO
+ *
+ * https://github.com/free-audio/clap-info
+ *
+ * CLAP-INFO is Free and Open Source software, released under the MIT
+ * License, a copy of which is included with this source in the file
+ * "LICENSE.md"
+ *
+ * Copyright (c) 2022 Various Authors, per the Git Transaction Log
+ */
 
 #include "clap/ext/audio-ports.h"
 #include "clap/ext/note-ports.h"
@@ -18,8 +22,7 @@ namespace clap_info_host
 
 Json::Value createAudioPortsJson(const clap_plugin *inst)
 {
-    auto inst_ports =
-        (clap_plugin_audio_ports_t *)inst->get_extension(inst, CLAP_EXT_AUDIO_PORTS);
+    auto inst_ports = (clap_plugin_audio_ports_t *)inst->get_extension(inst, CLAP_EXT_AUDIO_PORTS);
     int inPorts{0}, outPorts{0};
 
     Json::Value audioPorts;
@@ -41,7 +44,6 @@ Json::Value createAudioPortsJson(const clap_plugin *inst)
             inputPort["name"] = inf.name;
             inputPort["channel-count"] = inf.channel_count;
             inputPorts.append(inputPort);
-
         }
         audioPorts["input-ports"] = inputPorts;
 
@@ -67,8 +69,7 @@ Json::Value createAudioPortsJson(const clap_plugin *inst)
 
 Json::Value createNotePortsJson(const clap_plugin *inst)
 {
-    auto inst_ports =
-        (clap_plugin_note_ports_t *)inst->get_extension(inst, CLAP_EXT_NOTE_PORTS);
+    auto inst_ports = (clap_plugin_note_ports_t *)inst->get_extension(inst, CLAP_EXT_NOTE_PORTS);
     int inPorts{0}, outPorts{0};
 
     Json::Value notePorts;
@@ -80,22 +81,21 @@ Json::Value createNotePortsJson(const clap_plugin *inst)
         outPorts = inst_ports->count(inst, false);
         notePorts["output-port-count"] = outPorts;
 
-        auto dial = [](Json::Value& inputPort, auto supported, auto pref) {
+        auto dial = [](Json::Value &inputPort, auto supported, auto pref) {
 
-#define CHECKD(x) \
-                if (supported & x) {\
-                  inputPort["dialects"].append(#x); \
-                  if (pref == x)     \
-                    inputPort["preferred"] = #x;   \
-                }
-
+#define CHECKD(x)                                                                                  \
+    if (supported & x)                                                                             \
+    {                                                                                              \
+        inputPort["dialects"].append(#x);                                                          \
+        if (pref == x)                                                                             \
+            inputPort["preferred"] = #x;                                                           \
+    }
             CHECKD(CLAP_NOTE_DIALECT_CLAP);
             CHECKD(CLAP_NOTE_DIALECT_MIDI);
             CHECKD(CLAP_NOTE_DIALECT_MIDI_MPE);
             CHECKD(CLAP_NOTE_DIALECT_MIDI2);
 
 #undef CHECKD
-
         };
         Json::Value inputPorts;
         inputPorts.resize(0);
@@ -131,4 +131,4 @@ Json::Value createNotePortsJson(const clap_plugin *inst)
     }
     return notePorts;
 }
-}
+} // namespace clap_info_host

@@ -1,6 +1,14 @@
-//
-// Created by Paul Walker on 6/17/22.
-//
+/*
+ * CLAP-INFO
+ *
+ * https://github.com/free-audio/clap-info
+ *
+ * CLAP-INFO is Free and Open Source software, released under the MIT
+ * License, a copy of which is included with this source in the file
+ * "LICENSE.md"
+ *
+ * Copyright (c) 2022 Various Authors, per the Git Transaction Log
+ */
 
 #include <iostream>
 #include <iomanip>
@@ -48,12 +56,12 @@ Json::Value createParamsJson(const clap_plugin *inst)
             instParam["values"] = values;
 
             auto cp = [&inf, &instParam](auto x, auto y) {
-                    if (inf.flags & x)
-                    {
-                        instParam["flags"].append(y);
-                    }
-                };
-            cp(CLAP_PARAM_IS_STEPPED, "stepped" );
+                if (inf.flags & x)
+                {
+                    instParam["flags"].append(y);
+                }
+            };
+            cp(CLAP_PARAM_IS_STEPPED, "stepped");
             cp(CLAP_PARAM_IS_PERIODIC, "periodic");
             cp(CLAP_PARAM_IS_HIDDEN, "hidden");
             cp(CLAP_PARAM_IS_READONLY, "readonly");
@@ -82,4 +90,4 @@ Json::Value createParamsJson(const clap_plugin *inst)
     }
     return pluginParams;
 }
-}
+} // namespace clap_info_host

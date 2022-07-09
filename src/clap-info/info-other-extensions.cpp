@@ -1,6 +1,14 @@
-//
-// Created by Paul Walker on 7/9/22.
-//
+/*
+ * CLAP-INFO
+ *
+ * https://github.com/free-audio/clap-info
+ *
+ * CLAP-INFO is Free and Open Source software, released under the MIT
+ * License, a copy of which is included with this source in the file
+ * "LICENSE.md"
+ *
+ * Copyright (c) 2022 Various Authors, per the Git Transaction Log
+ */
 
 #include "info.h"
 
@@ -24,8 +32,7 @@ Json::Value unimpl(const Json::Value &v)
 
 Json::Value createLatencyJson(const clap_plugin *inst)
 {
-    auto inst_latency =
-        (clap_plugin_latency_t *)inst->get_extension(inst, CLAP_EXT_LATENCY);
+    auto inst_latency = (clap_plugin_latency_t *)inst->get_extension(inst, CLAP_EXT_LATENCY);
 
     Json::Value res;
     if (inst_latency)
@@ -38,8 +45,7 @@ Json::Value createLatencyJson(const clap_plugin *inst)
 
 Json::Value createTailJson(const clap_plugin *inst)
 {
-    auto inst_tail =
-        (clap_plugin_tail_t *)inst->get_extension(inst, CLAP_EXT_TAIL);
+    auto inst_tail = (clap_plugin_tail_t *)inst->get_extension(inst, CLAP_EXT_TAIL);
 
     Json::Value res;
     if (inst_tail)
@@ -52,15 +58,15 @@ Json::Value createTailJson(const clap_plugin *inst)
 
 Json::Value createGuiJson(const clap_plugin *inst)
 {
-    auto inst_gui =
-        (clap_plugin_gui_t *)inst->get_extension(inst, CLAP_EXT_GUI);
+    auto inst_gui = (clap_plugin_gui_t *)inst->get_extension(inst, CLAP_EXT_GUI);
 
     Json::Value res;
     if (inst_gui)
     {
         res["implemented"] = true;
         res["api_supported"] = Json::Value();
-        for (const auto &api : { CLAP_WINDOW_API_COCOA, CLAP_WINDOW_API_WIN32, CLAP_WINDOW_API_X11,CLAP_WINDOW_API_WAYLAND})
+        for (const auto &api : {CLAP_WINDOW_API_COCOA, CLAP_WINDOW_API_WIN32, CLAP_WINDOW_API_X11,
+                                CLAP_WINDOW_API_WAYLAND})
         {
             if (inst_gui->is_api_supported(inst, api, false))
                 res["api_supported"].append(api);
@@ -70,7 +76,7 @@ Json::Value createGuiJson(const clap_plugin *inst)
 
         const char prefA[CLAP_NAME_SIZE]{};
         bool fl{false};
-        if (inst_gui->get_preferred_api(inst, (const char**)&prefA, &fl))
+        if (inst_gui->get_preferred_api(inst, (const char **)&prefA, &fl))
         {
             res["preferred_api"] = std::string(prefA) + (fl ? ".floating" : "");
         }
@@ -80,8 +86,7 @@ Json::Value createGuiJson(const clap_plugin *inst)
 
 Json::Value createStateJson(const clap_plugin *inst)
 {
-    auto inst_state =
-        (clap_plugin_state_t  *)inst->get_extension(inst, CLAP_EXT_STATE);
+    auto inst_state = (clap_plugin_state_t *)inst->get_extension(inst, CLAP_EXT_STATE);
     Json::Value res;
     if (inst_state)
     {
@@ -91,8 +96,8 @@ Json::Value createStateJson(const clap_plugin *inst)
         uint64_t written{0};
 
         os.ctx = &written;
-        os.write = [](const struct clap_ostream *stream, const void *buffer, uint64_t size) -> int64_t
-        {
+        os.write = [](const struct clap_ostream *stream, const void *buffer,
+                      uint64_t size) -> int64_t {
             uint64_t *c = static_cast<uint64_t *>(stream->ctx);
             *(c) += size;
             return size;
@@ -103,17 +108,16 @@ Json::Value createStateJson(const clap_plugin *inst)
     return unimpl(res);
 }
 
-
 Json::Value createNoteNameJson(const clap_plugin *inst)
 {
     auto inst_notename =
-        (clap_plugin_note_name/*_t*/ *)inst->get_extension(inst, CLAP_EXT_NOTE_NAME);
+        (clap_plugin_note_name /*_t*/ *)inst->get_extension(inst, CLAP_EXT_NOTE_NAME);
 
     Json::Value res;
     if (inst_notename)
     {
         res["implemented"] = true;
-        auto ct =inst_notename->count(inst);
+        auto ct = inst_notename->count(inst);
         res["count"] = ct;
         if (ct > 0)
         {
@@ -135,8 +139,6 @@ Json::Value createNoteNameJson(const clap_plugin *inst)
     return unimpl(res);
 }
 
-
-
 Json::Value createAudioPortsConfigJson(const clap_plugin *inst)
 {
     auto inst_apc =
@@ -146,7 +148,7 @@ Json::Value createAudioPortsConfigJson(const clap_plugin *inst)
     if (inst_apc)
     {
         res["implemented"] = true;
-        auto ct =inst_apc->count(inst);
+        auto ct = inst_apc->count(inst);
         res["count"] = ct;
         if (ct > 0)
         {
@@ -175,4 +177,4 @@ Json::Value createAudioPortsConfigJson(const clap_plugin *inst)
     }
     return unimpl(res);
 }
-}
+} // namespace clap_info_host

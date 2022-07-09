@@ -1,15 +1,19 @@
 # clap-info: A simple command line CLAP information tool
 
 This is a CLAP information tool which simply loads a clap and allows you to
-print a variety of information about the plugin. It is primarily useful in 
-debugging and when starting a CLAP, but also is handy for smoke tests, attaching
-debuggers, and so on.
+print a variety of information about the plugin. It prints the information in 
+machine-readable (JSON) format.
 
-We welcome pull requests and improvements.
+`clap-info` can perform the following
 
-Please note we are transitioning the output of this tool to be human
-readable JSON documents rather than unstructured prints. We are some of the
-way there. 
+- Traverse your system finding .clap files, and scanning them for information
+- Load a single CLAP and display the descriptors
+- For a given CLAP and descriptor, create an instance of a plugin and print
+  extension information, including ports, parameters, and more
+
+We occasionally tag releases with versions and make binary releases available,
+but the program is designed to be easy to build, and when starting a CLAP development
+effort, can be a useful tiny host to debug the first stages of CLAP development.
 
 ## To build
 
@@ -21,19 +25,22 @@ cmake -Bbuild
 cmake --build build
 ```
 
-## To use
+## To use as a scanner
 
-The most basic usage, using all the default flags, is:
+`clap-info -l` will list all installed CLAPs on your system, using the CLAP 
+locations documented in `entry.h`
 
-```bash
-build/clap-info "/path/to/Surge XT.clap"
-```
+`clap-info -s` will load each clap and print the descriptors for each CLAP,
+and as such implements a CLAP scanner.
 
-But you can configure the information with various degrees of probes, verbosity, and more. 
-In this regard, the code is the documentation, but luckily our argument parser means the
-code is also our help screen! Try:
+## To use on a single CLAP
 
 ```bash
-build/clap-info --help
+clap-info "/path/to/YourCLAP.clap"
 ```
+
+this usage will print complete information on plugin 0 in your clap.
+
+You can configure the information with various degrees of probes, verbosity, and more. 
+Use `clap-info --help` to get full information on the options.
 
