@@ -56,12 +56,8 @@ int main(int argc, char **argv)
     bool notePorts{true};
     app.add_option( "--note-ports", notePorts, "Display the Note Ports configuration")->default_str("TRUE");
 
-    bool latency{true};
-    app.add_option( "--latency", latency, "Display the latency configuration")->default_str("TRUE");
-
-    bool gui{true};
-    app.add_option( "--gui", notePorts, "Display the gui configuration")->default_str("TRUE");
-
+    bool otherExt{true};
+    app.add_option( "--other-ext", otherExt, "Display brief information about all other extensions")->default_str("TRUE");
 
     bool searchPath{false};
     app.add_flag( "--search-path", searchPath, "Show the CLAP plugin search paths then exit");
@@ -177,7 +173,7 @@ int main(int argc, char **argv)
     auto version = entry->clap_version;
     std::stringstream ss;
     ss << version.major << "." << version.minor << "." << version.revision;
-    root["version"] = ss.str();
+    root["clap-version"] = ss.str();
 
     entry->init(clap.c_str());
 
@@ -190,10 +186,10 @@ int main(int argc, char **argv)
         return 4;
     }
 
-    root["plugin-count"] = plugin_count;
-
-    if (descShow)
+    if (descShow && !create)
     {
+        // Only loop if we don't create
+        root["plugin-count"] = plugin_count;
         Json::Value factory;
         factory.resize(0);
         for (uint32_t pl = 0; pl < plugin_count; ++pl)
@@ -229,6 +225,28 @@ int main(int argc, char **argv)
         return 4;
     }
 
+    if (descShow)
+    {
+        // Only loop if we don't create
+        Json::Value pluginDescriptor;
+        auto desc = fac->get_plugin_descriptor(fac, which_plugin);
+
+        pluginDescriptor["name"] = desc->name;
+        pluginDescriptor["version"] = desc->version;
+        pluginDescriptor["id"] = desc->id;
+        pluginDescriptor["description"] = desc->description;
+
+        auto f = desc->features;
+        while (f[0])
+        {
+            pluginDescriptor["features"].append(f[0]);
+            f++;
+        }
+        root["descriptor"] = pluginDescriptor;
+        root["plugin-index"] = which_plugin;
+
+    }
+
     auto desc = fac->get_plugin_descriptor(fac, which_plugin);
 
 
@@ -257,23 +275,26 @@ int main(int argc, char **argv)
         extensions[CLAP_EXT_NOTE_PORTS] = clap_info_host::createNotePortsJson(inst);
     }
 
-    if (latency)
+    if (otherExt)
     {
         extensions[CLAP_EXT_LATENCY] = clap_info_host::createLatencyJson(inst);
-    }
-
-    if (latency)
-    {
-        extensions[CLAP_EXT_LATENCY] = clap_info_host::createLatencyJson(inst);
-    }
-
-    if (gui)
-    {
+        extensions[CLAP_EXT_TAIL] = clap_info_host::createTailJson(inst);
         extensions[CLAP_EXT_GUI] = clap_info_host::createGuiJson(inst);
+        extensions[CLAP_EXT_STATE] = clap_info_host::createStateJson(inst);
+        extensions[CLAP_EXT_NOTE_NAME] = clap_info_host::createNoteNameJson(inst);
+        extensions[CLAP_EXT_AUDIO_PORTS_CONFIG] = clap_info_host::createAudioPortsConfigJson(inst);
+
+        // Some 'is implemented' only ones
+        for (auto ext : {CLAP_EXT_TIMER_SUPPORT, CLAP_EXT_POSIX_FD_SUPPORT, CLAP_EXT_THREAD_POOL,
+                         CLAP_EXT_RENDER})
+        {
+            auto exf = inst->get_extension(inst, ext);
+            Json::Value r;
+            r["implemented"] = exf ? true : false;
+            extensions[ext] = r;
+        }
     }
 
-    // Probably want to rework this structure
-    root["id"] = desc->id;
 
     root["extensions"] = extensions;
 

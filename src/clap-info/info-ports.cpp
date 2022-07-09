@@ -25,6 +25,7 @@ Json::Value createAudioPortsJson(const clap_plugin *inst)
     Json::Value audioPorts;
     if (inst_ports)
     {
+        audioPorts["implemented"] = true;
         inPorts = inst_ports->count(inst, true);
         audioPorts["input-port-count"] = inPorts;
         outPorts = inst_ports->count(inst, false);
@@ -57,6 +58,10 @@ Json::Value createAudioPortsJson(const clap_plugin *inst)
         }
         audioPorts["output-ports"] = outputPorts;
     }
+    else
+    {
+        audioPorts["implemented"] = false;
+    }
     return audioPorts;
 }
 
@@ -69,6 +74,7 @@ Json::Value createNotePortsJson(const clap_plugin *inst)
     Json::Value notePorts;
     if (inst_ports)
     {
+        notePorts["implemented"] = true;
         inPorts = inst_ports->count(inst, true);
         notePorts["input-port-count"] = inPorts;
         outPorts = inst_ports->count(inst, false);
@@ -118,6 +124,10 @@ Json::Value createNotePortsJson(const clap_plugin *inst)
             outputPorts.append(outputPort);
         }
         notePorts["output-ports"] = outputPorts;
+    }
+    else
+    {
+        notePorts["implmeented"] = false;
     }
     return notePorts;
 }

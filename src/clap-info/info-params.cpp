@@ -19,6 +19,7 @@ Json::Value createParamsJson(const clap_plugin *inst)
     if (inst_param)
     {
         auto pc = inst_param->count(inst);
+        pluginParams["implemented"] = true;
         pluginParams["param-count"] = pc;
 
         Json::Value instParams;
@@ -74,6 +75,10 @@ Json::Value createParamsJson(const clap_plugin *inst)
             instParams.append(instParam);
         }
         pluginParams["param-info"] = instParams;
+    }
+    else
+    {
+        pluginParams["implemented"] = false;
     }
     return pluginParams;
 }
