@@ -25,13 +25,30 @@ struct CLAPInfoJsonRoot
 {
     Json::Value root;
     bool active{true};
+    std::string outFile;
     ~CLAPInfoJsonRoot()
     {
         if (active)
         {
             Json::StyledWriter writer;
             std::string out_string = writer.write(root);
-            std::cout << out_string << std::endl;
+            if (outFile.empty())
+            {
+                std::cout << out_string << std::endl;
+            }
+            else
+            {
+                auto ofs = std::ofstream(outFile);
+                if (ofs.is_open())
+                {
+                    ofs << out_string;
+                    ofs.close();
+                }
+                else
+                {
+                    std::cout << "Unable to open output file '" << outFile << "' for writing";
+                }
+            }
         }
     }
 };
@@ -51,6 +68,9 @@ int main(int argc, char **argv)
     bool showClapsWithDesc{false};
     app.add_flag("-s,--scan-clap-files", showClapsWithDesc,
                  "Show all descriptions in all CLAP files in the search path, then exit");
+
+    std::string outFile{};
+    app.add_option("-o,--output", outFile, "Redirect JSON to an output file rather than stdout");
 
     bool create{true};
     app.add_option("--create", create,
@@ -98,6 +118,7 @@ int main(int argc, char **argv)
     CLI11_PARSE(app, argc, argv);
 
     CLAPInfoJsonRoot doc;
+    doc.outFile = outFile;
 
     if (searchPath)
     {
@@ -183,6 +204,13 @@ int main(int argc, char **argv)
         }
         doc.root["result"] = res;
         return 0;
+    }
+
+    if (clap == "")
+    {
+        std::cout << app.help() << std::endl;
+        doc.active = false;
+        return 1;
     }
 
     auto clapPath = std::filesystem::path(clap);
