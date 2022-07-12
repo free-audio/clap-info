@@ -77,10 +77,11 @@ int main(int argc, char **argv)
                    "Choose whether to create an instance of the plugin or just scan the entry.")
         ->default_str("TRUE");
 
-    uint32_t which_plugin{0};
+    int32_t which_plugin{-1};
     app.add_option("--which", which_plugin,
-                   "Choose which plugin to create (if the CLAP has more than one)")
-        ->default_str("0");
+                   "Choose which plugin to create (if the CLAP has more than one). If you set to -1 "
+                   "we will traverse all plugins.")
+        ->default_str("-1");
 
     bool annExt{false};
     app.add_option("--announce-extensions", annExt, "Announce extensions queried by plugin.")
@@ -293,86 +294,97 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    if (which_plugin < 0 || which_plugin >= plugin_count)
+    if (which_plugin != -1 && ( which_plugin < 0 || which_plugin >= (int)plugin_count))
     {
         std::cerr << "Unable to create plugin " << which_plugin << " which must be between 0 and "
-                  << plugin_count - 1 << std::endl;
+                  << plugin_count - 1 << " or be a -1 sentinel" << std::endl;
         doc.active = false;
         return 4;
     }
 
-    if (descShow)
+    int startPlugin = (which_plugin < 0 ? 0 : which_plugin);
+    int endPlugin = (which_plugin < 0 ? plugin_count : which_plugin + 1);
+
+    root["plugin_count"] = plugin_count;
+    root["plugins"] = Json::Value();
+
+    for (int plug = startPlugin; plug < endPlugin; ++plug)
     {
-        // Only loop if we don't create
-        Json::Value pluginDescriptor;
-        auto desc = fac->get_plugin_descriptor(fac, which_plugin);
+        auto thisPluginJson = Json::Value();
+        auto desc = fac->get_plugin_descriptor(fac, plug);
 
-        pluginDescriptor["name"] = desc->name;
-        pluginDescriptor["version"] = desc->version;
-        pluginDescriptor["id"] = desc->id;
-        pluginDescriptor["description"] = desc->description;
-
-        auto f = desc->features;
-        while (f[0])
+        if (descShow)
         {
-            pluginDescriptor["features"].append(f[0]);
-            f++;
+            // Only loop if we don't create
+            Json::Value pluginDescriptor;
+
+            pluginDescriptor["name"] = desc->name;
+            pluginDescriptor["version"] = desc->version;
+            pluginDescriptor["id"] = desc->id;
+            pluginDescriptor["description"] = desc->description;
+
+            auto f = desc->features;
+            while (f[0])
+            {
+                pluginDescriptor["features"].append(f[0]);
+                f++;
+            }
+            thisPluginJson["descriptor"] = pluginDescriptor;
+            thisPluginJson["plugin-index"] = plug;
         }
-        root["descriptor"] = pluginDescriptor;
-        root["plugin-index"] = which_plugin;
-    }
 
-    auto desc = fac->get_plugin_descriptor(fac, which_plugin);
+        // Now lets make an instance
+        auto host = clap_info_host::createCLAPInfoHost();
+        clap_info_host::getHostConfig()->announceQueriedExtensions = annExt;
+        auto inst = fac->create_plugin(fac, host, desc->id);
 
-    // Now lets make an instance
-    auto host = clap_info_host::createCLAPInfoHost();
-    clap_info_host::getHostConfig()->announceQueriedExtensions = annExt;
-    auto inst = fac->create_plugin(fac, host, desc->id);
+        inst->init(inst);
+        inst->activate(inst, 48000, 32, 4096);
 
-    inst->init(inst);
-    inst->activate(inst, 48000, 32, 4096);
+        Json::Value extensions;
 
-    Json::Value extensions;
-
-    if (paramShow)
-    {
-        extensions[CLAP_EXT_PARAMS] = clap_info_host::createParamsJson(inst);
-    }
-
-    if (audioPorts)
-    {
-        extensions[CLAP_EXT_AUDIO_PORTS] = clap_info_host::createAudioPortsJson(inst);
-    }
-
-    if (notePorts)
-    {
-        extensions[CLAP_EXT_NOTE_PORTS] = clap_info_host::createNotePortsJson(inst);
-    }
-
-    if (otherExt)
-    {
-        extensions[CLAP_EXT_LATENCY] = clap_info_host::createLatencyJson(inst);
-        extensions[CLAP_EXT_TAIL] = clap_info_host::createTailJson(inst);
-        extensions[CLAP_EXT_GUI] = clap_info_host::createGuiJson(inst);
-        extensions[CLAP_EXT_STATE] = clap_info_host::createStateJson(inst);
-        extensions[CLAP_EXT_NOTE_NAME] = clap_info_host::createNoteNameJson(inst);
-        extensions[CLAP_EXT_AUDIO_PORTS_CONFIG] = clap_info_host::createAudioPortsConfigJson(inst);
-
-        // Some 'is implemented' only ones
-        for (auto ext : {CLAP_EXT_TIMER_SUPPORT, CLAP_EXT_POSIX_FD_SUPPORT, CLAP_EXT_THREAD_POOL,
-                         CLAP_EXT_RENDER})
+        if (paramShow)
         {
-            auto exf = inst->get_extension(inst, ext);
-            Json::Value r;
-            r["implemented"] = exf ? true : false;
-            extensions[ext] = r;
+            extensions[CLAP_EXT_PARAMS] = clap_info_host::createParamsJson(inst);
         }
+
+        if (audioPorts)
+        {
+            extensions[CLAP_EXT_AUDIO_PORTS] = clap_info_host::createAudioPortsJson(inst);
+        }
+
+        if (notePorts)
+        {
+            extensions[CLAP_EXT_NOTE_PORTS] = clap_info_host::createNotePortsJson(inst);
+        }
+
+        if (otherExt)
+        {
+            extensions[CLAP_EXT_LATENCY] = clap_info_host::createLatencyJson(inst);
+            extensions[CLAP_EXT_TAIL] = clap_info_host::createTailJson(inst);
+            extensions[CLAP_EXT_GUI] = clap_info_host::createGuiJson(inst);
+            extensions[CLAP_EXT_STATE] = clap_info_host::createStateJson(inst);
+            extensions[CLAP_EXT_NOTE_NAME] = clap_info_host::createNoteNameJson(inst);
+            extensions[CLAP_EXT_AUDIO_PORTS_CONFIG] =
+                clap_info_host::createAudioPortsConfigJson(inst);
+
+            // Some 'is implemented' only ones
+            for (auto ext : {CLAP_EXT_TIMER_SUPPORT, CLAP_EXT_POSIX_FD_SUPPORT,
+                             CLAP_EXT_THREAD_POOL, CLAP_EXT_RENDER})
+            {
+                auto exf = inst->get_extension(inst, ext);
+                Json::Value r;
+                r["implemented"] = exf ? true : false;
+                extensions[ext] = r;
+            }
+        }
+
+        thisPluginJson["extensions"] = extensions;
+        root["plugins"].append(thisPluginJson);
+
+        inst->deactivate(inst);
+        inst->destroy(inst);
     }
-
-    root["extensions"] = extensions;
-
-    inst->deactivate(inst);
-    inst->destroy(inst);
 
     entry->deinit();
 
