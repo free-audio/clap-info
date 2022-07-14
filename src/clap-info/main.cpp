@@ -115,11 +115,23 @@ int main(int argc, char **argv)
     bool searchPath{false};
     app.add_flag("--search-path", searchPath, "Show the CLAP plugin search paths then exit");
 
+    bool brief{false};
+    app.add_flag("--brief", brief, "Output brief infomation only");
 
     CLI11_PARSE(app, argc, argv);
 
     CLAPInfoJsonRoot doc;
     doc.outFile = outFile;
+
+    // If brief param is set, override other params to output concise information only
+    if (brief)
+    {
+        annExt = false;
+        audioPorts = false;
+        notePorts = false;
+        paramShow = false;
+        otherExt = false;
+    }
 
     if (searchPath)
     {
