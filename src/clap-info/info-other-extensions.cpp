@@ -74,11 +74,13 @@ Json::Value createGuiJson(const clap_plugin *inst)
                 res["api_supported"].append(std::string(api) + ".floating");
         }
 
-        const char prefA[CLAP_NAME_SIZE]{};
+        const char *prefA{nullptr};
         bool fl{false};
-        if (inst_gui->get_preferred_api(inst, (const char **)&prefA, &fl))
+        if (inst_gui->get_preferred_api(inst, &prefA, &fl) && prefA)
         {
-            res["preferred_api"] = std::string(prefA) + (fl ? ".floating" : "");
+            res["preferred_api"] = Json::Value();
+            res["preferred_api"]["api"] = prefA;
+            res["preferred_api"]["floating"] = fl;
         }
     }
     return unimpl(res);
