@@ -176,9 +176,9 @@ int main(int argc, char **argv)
                     entry, [&entryJson](const clap_plugin_descriptor_t *desc) {
                         Json::Value thisPlugin;
                         thisPlugin["name"] = desc->name;
-                        thisPlugin["version"] = desc->version;
+                        if (desc->version) thisPlugin["version"] = desc->version;
                         thisPlugin["id"] = desc->id;
-                        thisPlugin["description"] = desc->description;
+                        if (desc->description) thisPlugin["description"] = desc->description;
 
                         Json::Value features;
 
@@ -286,9 +286,9 @@ int main(int argc, char **argv)
             auto desc = fac->get_plugin_descriptor(fac, pl);
 
             pluginDescriptor["name"] = desc->name;
-            pluginDescriptor["version"] = desc->version;
+            if (desc->version) pluginDescriptor["version"] = desc->version;
             pluginDescriptor["id"] = desc->id;
-            pluginDescriptor["description"] = desc->description;
+            if (desc->description) pluginDescriptor["description"] = desc->description;
 
             auto f = desc->features;
             while (f[0])
@@ -331,9 +331,9 @@ int main(int argc, char **argv)
             Json::Value pluginDescriptor;
 
             pluginDescriptor["name"] = desc->name;
-            pluginDescriptor["version"] = desc->version;
+            if (desc->version) pluginDescriptor["version"] = desc->version;
             pluginDescriptor["id"] = desc->id;
-            pluginDescriptor["description"] = desc->description;
+            if (desc->description) pluginDescriptor["description"] = desc->description;
 
             auto f = desc->features;
             while (f[0])
