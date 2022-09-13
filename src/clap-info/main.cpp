@@ -167,6 +167,7 @@ int main(int argc, char **argv)
             Json::Value entryJson;
             if (auto entry = clap_scanner::entryFromCLAPPath(q))
             {
+                entry->init(q.u8string().c_str());
                 entryJson["path"] = q.u8string();
                 entryJson["clap-version"] = std::to_string(entry->clap_version.major) + "." +
                                             std::to_string(entry->clap_version.minor) + "." +
@@ -213,6 +214,7 @@ int main(int argc, char **argv)
                         entryJson["plugins"].append(thisPlugin);
                     });
                 res.append(entryJson);
+                entry->deinit();
             }
         }
         doc.root["result"] = res;
@@ -349,6 +351,12 @@ int main(int argc, char **argv)
         auto host = clap_info_host::createCLAPInfoHost();
         clap_info_host::getHostConfig()->announceQueriedExtensions = annExt;
         auto inst = fac->create_plugin(fac, host, desc->id);
+	if (!inst)
+	{
+            std::cerr << "Unable to create plugin; inst is null" << std::endl;
+            doc.active = false;
+	    return 5;
+	}
 
         inst->init(inst);
         inst->activate(inst, 48000, 32, 4096);
