@@ -70,6 +70,11 @@ const clap_plugin_entry_t *entryFromCLAPPath(const std::filesystem::path &p)
     int *iptr;
 
     handle = dlopen(p.u8string().c_str(), RTLD_LOCAL | RTLD_LAZY);
+    if (!handle)
+    {
+        std::cerr << "dlopen failed on Linux: " << dlerror() << std::endl;
+	return nullptr;
+    }
 
     iptr = (int *)dlsym(handle, "clap_entry");
 
