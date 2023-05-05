@@ -15,7 +15,7 @@
 
 #include "clap-info-host.h"
 #include "clap-scanner/scanner.h"
-#include "clap/plugin-factory.h"
+#include "clap/factory/plugin-factory.h"
 
 #include "info.h"
 
@@ -390,7 +390,8 @@ int main(int argc, char **argv)
 
             // Some 'is implemented' only ones
             for (auto ext : {CLAP_EXT_TIMER_SUPPORT, CLAP_EXT_POSIX_FD_SUPPORT,
-                             CLAP_EXT_THREAD_POOL, CLAP_EXT_RENDER})
+                             CLAP_EXT_THREAD_POOL, CLAP_EXT_THREAD_CHECK, CLAP_EXT_RENDER,
+                             CLAP_EXT_LOG, CLAP_EXT_RENDER, CLAP_EXT_VOICE_INFO})
             {
                 auto exf = inst->get_extension(inst, ext);
                 Json::Value r;
