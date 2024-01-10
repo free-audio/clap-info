@@ -358,7 +358,12 @@ int main(int argc, char **argv)
 	    return 5;
 	}
 
-        inst->init(inst);
+        bool result = inst->init(inst);
+	if (!result) {
+	    std::cerr << "Unable to init plugin" << std::endl;
+	    doc.active = false;
+            return 6;
+	}
         inst->activate(inst, 48000, 32, 4096);
 
         Json::Value extensions;
