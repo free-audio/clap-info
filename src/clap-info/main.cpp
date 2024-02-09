@@ -13,6 +13,8 @@
 #include <iostream>
 #include <filesystem>
 
+#include "clap/all.h"
+
 #include "clap-info-host.h"
 #include "clap-scanner/scanner.h"
 #include "clap/factory/plugin-factory.h"
@@ -20,6 +22,7 @@
 #include "info.h"
 
 #include "CLI11/CLI11.hpp"
+
 
 struct CLAPInfoJsonRoot
 {
@@ -393,10 +396,47 @@ int main(int argc, char **argv)
             extensions[CLAP_EXT_AUDIO_PORTS_CONFIG] =
                 clap_info_host::createAudioPortsConfigJson(inst);
 
-            // Some 'is implemented' only ones
-            for (auto ext : {CLAP_EXT_TIMER_SUPPORT, CLAP_EXT_POSIX_FD_SUPPORT,
-                             CLAP_EXT_THREAD_POOL, CLAP_EXT_THREAD_CHECK, CLAP_EXT_RENDER,
-                             CLAP_EXT_LOG, CLAP_EXT_RENDER, CLAP_EXT_VOICE_INFO})
+            // Some 'is implemented' only ones. This is the
+            // entire 1.2.0 list generated with
+            // grep -r CLAP_EXT libs/clap/include | grep static | awk '{print $5}' | sed -e 's/\[\]/,/'
+            // and then remove the ones handled above by hand
+            for (auto ext : {
+                     CLAP_EXT_AMBISONIC,
+                     CLAP_EXT_AMBISONIC_COMPAT,
+                     CLAP_EXT_AUDIO_PORTS_ACTIVATION,
+                     CLAP_EXT_AUDIO_PORTS_ACTIVATION_COMPAT,
+                     CLAP_EXT_AUDIO_PORTS_CONFIG_INFO,
+                     CLAP_EXT_AUDIO_PORTS_CONFIG_INFO_COMPAT,
+                     CLAP_EXT_CONFIGURABLE_AUDIO_PORTS,
+                     CLAP_EXT_CONFIGURABLE_AUDIO_PORTS_COMPAT,
+                     CLAP_EXT_CONTEXT_MENU,
+                     CLAP_EXT_CONTEXT_MENU_COMPAT,
+                     CLAP_EXT_EVENT_REGISTRY,
+                     CLAP_EXT_EXTENSIBLE_AUDIO_PORTS,
+                     CLAP_EXT_LOG,
+                     CLAP_EXT_PARAM_INDICATION,
+                     CLAP_EXT_PARAM_INDICATION_COMPAT,
+                     CLAP_EXT_POSIX_FD_SUPPORT,
+                     CLAP_EXT_PRESET_LOAD,
+                     CLAP_EXT_PRESET_LOAD_COMPAT,
+                     CLAP_EXT_REMOTE_CONTROLS,
+                     CLAP_EXT_REMOTE_CONTROLS_COMPAT,
+                     CLAP_EXT_RENDER,
+                     CLAP_EXT_RESOURCE_DIRECTORY,
+                     CLAP_EXT_STATE_CONTEXT,
+                     CLAP_EXT_SURROUND,
+                     CLAP_EXT_SURROUND_COMPAT,
+                     CLAP_EXT_THREAD_CHECK,
+                     CLAP_EXT_THREAD_POOL,
+                     CLAP_EXT_TIMER_SUPPORT,
+                     CLAP_EXT_TRACK_INFO,
+                     CLAP_EXT_TRACK_INFO_COMPAT,
+                     CLAP_EXT_TRANSPORT_CONTROL,
+                     CLAP_EXT_TRIGGERS,
+                     CLAP_EXT_TUNING,
+                     CLAP_EXT_VOICE_INFO,
+
+                 })
             {
                 auto exf = inst->get_extension(inst, ext);
                 Json::Value r;
