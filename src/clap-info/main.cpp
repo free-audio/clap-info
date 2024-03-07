@@ -23,7 +23,6 @@
 
 #include "CLI11/CLI11.hpp"
 
-
 struct CLAPInfoJsonRoot
 {
     Json::Value root;
@@ -81,9 +80,10 @@ int main(int argc, char **argv)
         ->default_str("TRUE");
 
     int32_t which_plugin{-1};
-    app.add_option("--which", which_plugin,
-                   "Choose which plugin to create (if the CLAP has more than one). If you set to -1 "
-                   "we will traverse all plugins.")
+    app.add_option(
+           "--which", which_plugin,
+           "Choose which plugin to create (if the CLAP has more than one). If you set to -1 "
+           "we will traverse all plugins.")
         ->default_str("-1");
 
     bool annExt{false};
@@ -180,9 +180,13 @@ int main(int argc, char **argv)
                     entry, [&entryJson](const clap_plugin_descriptor_t *desc) {
                         Json::Value thisPlugin;
                         thisPlugin["name"] = desc->name;
-                        if (desc->version) thisPlugin["version"] = desc->version;
+                        if (desc->version)
+                            thisPlugin["version"] = desc->version;
                         thisPlugin["id"] = desc->id;
-                        if (desc->description) thisPlugin["description"] = desc->description;
+                        if (desc->vendor)
+                            thisPlugin["vendor"] = desc->vendor;
+                        if (desc->description)
+                            thisPlugin["description"] = desc->description;
 
                         Json::Value features;
 
@@ -291,9 +295,13 @@ int main(int argc, char **argv)
             auto desc = fac->get_plugin_descriptor(fac, pl);
 
             pluginDescriptor["name"] = desc->name;
-            if (desc->version) pluginDescriptor["version"] = desc->version;
+            if (desc->version)
+                pluginDescriptor["version"] = desc->version;
             pluginDescriptor["id"] = desc->id;
-            if (desc->description) pluginDescriptor["description"] = desc->description;
+            if (desc->vendor)
+                pluginDescriptor["vendor"] = desc->vendor;
+            if (desc->description)
+                pluginDescriptor["description"] = desc->description;
 
             auto f = desc->features;
             while (f[0])
@@ -311,7 +319,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    if (which_plugin != -1 && ( which_plugin < 0 || which_plugin >= (int)plugin_count))
+    if (which_plugin != -1 && (which_plugin < 0 || which_plugin >= (int)plugin_count))
     {
         std::cerr << "Unable to create plugin " << which_plugin << " which must be between 0 and "
                   << plugin_count - 1 << " or be a -1 sentinel" << std::endl;
@@ -336,9 +344,13 @@ int main(int argc, char **argv)
             Json::Value pluginDescriptor;
 
             pluginDescriptor["name"] = desc->name;
-            if (desc->version) pluginDescriptor["version"] = desc->version;
+            if (desc->version)
+                pluginDescriptor["version"] = desc->version;
             pluginDescriptor["id"] = desc->id;
-            if (desc->description) pluginDescriptor["description"] = desc->description;
+            if (desc->vendor)
+                pluginDescriptor["vendor"] = desc->vendor;
+            if (desc->description)
+                pluginDescriptor["description"] = desc->description;
 
             auto f = desc->features;
             while (f[0])
@@ -354,19 +366,20 @@ int main(int argc, char **argv)
         auto host = clap_info_host::createCLAPInfoHost();
         clap_info_host::getHostConfig()->announceQueriedExtensions = annExt;
         auto inst = fac->create_plugin(fac, host, desc->id);
-	if (!inst)
-	{
+        if (!inst)
+        {
             std::cerr << "Unable to create plugin; inst is null" << std::endl;
             doc.active = false;
-	    return 5;
-	}
+            return 5;
+        }
 
         bool result = inst->init(inst);
-	if (!result) {
-	    std::cerr << "Unable to init plugin" << std::endl;
-	    doc.active = false;
+        if (!result)
+        {
+            std::cerr << "Unable to init plugin" << std::endl;
+            doc.active = false;
             return 6;
-	}
+        }
         inst->activate(inst, 48000, 32, 4096);
 
         Json::Value extensions;
@@ -398,8 +411,8 @@ int main(int argc, char **argv)
 
             // Some 'is implemented' only ones. This is the
             // entire 1.2.0 list generated with
-            // grep -r CLAP_EXT libs/clap/include | grep static | awk '{print $5}' | sed -e 's/\[\]/,/'
-            // and then remove the ones handled above by hand
+            // grep -r CLAP_EXT libs/clap/include | grep static | awk '{print $5}' | sed -e
+            // 's/\[\]/,/' and then remove the ones handled above by hand
             for (auto ext : {
                      CLAP_EXT_AMBISONIC,
                      CLAP_EXT_AMBISONIC_COMPAT,
