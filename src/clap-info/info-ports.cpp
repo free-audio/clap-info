@@ -34,6 +34,29 @@ Json::Value createAudioPortsJson(const clap_plugin *inst)
         outPorts = inst_ports->count(inst, false);
         audioPorts["output-port-count"] = outPorts;
 
+        auto makeFlags = [](const auto &p) {
+            Json::Value flag;
+            flag["value"] = p;
+            Json::Value desc;
+
+#define ADDF(x)                                                                                    \
+    if (p & x)                                                                                     \
+    {                                                                                              \
+        desc.append(#x);                                                                           \
+    }
+            ADDF(CLAP_AUDIO_PORT_IS_MAIN);
+            ADDF(CLAP_AUDIO_PORT_SUPPORTS_64BITS);
+            ADDF(CLAP_AUDIO_PORT_PREFERS_64BITS);
+            ADDF(CLAP_AUDIO_PORT_REQUIRES_COMMON_SAMPLE_SIZE);
+#undef ADDF
+
+            if (desc.size() != 0)
+            {
+                flag["fields"] = desc;
+            }
+            return flag;
+        };
+
         Json::Value inputPorts;
         inputPorts.resize(0);
         for (int i = 0; i < inPorts; ++i)
@@ -42,7 +65,18 @@ Json::Value createAudioPortsJson(const clap_plugin *inst)
             inst_ports->get(inst, i, true, &inf);
             Json::Value inputPort;
             inputPort["name"] = inf.name;
+            inputPort["id"] = inf.id;
             inputPort["channel-count"] = inf.channel_count;
+            if (inf.port_type)
+            {
+                inputPort["port-type"] = inf.port_type;
+            }
+            inputPort["flags"] = makeFlags(inf.flags);
+
+            if (inf.in_place_pair != CLAP_INVALID_ID)
+            {
+                inputPort["in-place-pair"] = inf.in_place_pair;
+            }
             inputPorts.append(inputPort);
         }
         audioPorts["input-ports"] = inputPorts;
@@ -55,7 +89,19 @@ Json::Value createAudioPortsJson(const clap_plugin *inst)
             inst_ports->get(inst, i, false, &inf);
             Json::Value outputPort;
             outputPort["name"] = inf.name;
+            outputPort["id"] = inf.id;
             outputPort["channel-count"] = inf.channel_count;
+            if (inf.port_type)
+            {
+                outputPort["port-type"] = inf.port_type;
+            }
+
+            outputPort["flags"] = makeFlags(inf.flags);
+
+            if (inf.in_place_pair != CLAP_INVALID_ID)
+            {
+                outputPort["in-place-pair"] = inf.in_place_pair;
+            }
             outputPorts.append(outputPort);
         }
         audioPorts["output-ports"] = outputPorts;
