@@ -4,6 +4,7 @@ cmake_policy(SET CMP0091 NEW)
 # CLAP supports standard C; but this validator uses std::filesystem so requires C++ 17
 # and macOS 10.15
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15 CACHE STRING "Minimum macOS version")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 project(clap-info VERSION 1.0.0 LANGUAGES C CXX)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
