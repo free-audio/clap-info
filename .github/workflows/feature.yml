@@ -28,7 +28,7 @@ jobs:
             file_name: clap-info
             file_ext: .exe
             cmake_args: -G"Visual Studio 17 2022" -A x64
-          - os: windows-latest-arm64ec
+          - os: windows-latest
             name: win-arm64ec
             dir_build: ./build/Release
             file_name: clap-info
