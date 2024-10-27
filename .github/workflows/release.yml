@@ -25,6 +25,7 @@ jobs:
 
   build_release:
     name: Build ${{ matrix.name }}
+    needs: create_release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
