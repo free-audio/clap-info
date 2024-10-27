@@ -41,12 +41,7 @@ jobs:
             cmake_args: -G"Visual Studio 17 2022" -A arm64ec -DCMAKE_SYSTEM_VERSION=10
             run_test: false
 
-
     steps:
-      - name: Install Windows dependencies
-        if: matrix.os == 'windows-latest'
-        run: choco install zip
-
       - name: Checkout code
         uses: actions/checkout@v2
         with:
@@ -67,14 +62,3 @@ jobs:
       - name: Windows Dumpbin
         if: matrix.os == 'windows-latest'
         run: dumpbin.exe  ${{ matrix.dir_build }}/${{ matrix.file_name }}${{ matrix.file_ext }}
-
-      - name: Compress binary
-        run: |
-          cd "${{ matrix.dir_build }}"
-          zip ${{ matrix.file_name }}-${{ matrix.name }}.zip ${{ matrix.file_name }}${{ matrix.file_ext }}
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.file_name }}-${{ matrix.name }}.zip
-          path: ${{ matrix.dir_build }}/${{ matrix.file_name }}-${{ matrix.name }}.zip
