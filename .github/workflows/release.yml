@@ -31,7 +31,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            name: linux
+            name: linux-x64
             dir_build: ./build
             file_name: clap-info
             run_test: true
@@ -44,7 +44,7 @@ jobs:
             run_test: true
 
           - os: windows-latest
-            name: win
+            name: win-x64
             dir_build: ./build/Release
             file_name: clap-info
             file_ext: .exe
