@@ -18,18 +18,18 @@ jobs:
             dir_build: ./build
             file_name: clap-info
           - os: macos-latest
-            name: mac
+            name: mac-universal
             dir_build: ./build
             file_name: clap-info
             cmake_args: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
           - os: windows-latest
-            name: win
+            name: win-x64
             dir_build: ./build/Release
             file_name: clap-info
             file_ext: .exe
             cmake_args: -G"Visual Studio 17 2022" -A x64
           - os: windows-latest-arm64ec
-            name: win
+            name: win-arm64ec
             dir_build: ./build/Release
             file_name: clap-info
             file_ext: .exe
