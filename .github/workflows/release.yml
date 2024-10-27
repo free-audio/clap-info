@@ -24,26 +24,41 @@ jobs:
           draft: true
 
   build_release:
-    name: Build release
-    needs: create_release
+    name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
             name: linux
             dir_build: ./build
             file_name: clap-info
+            run_test: true
+
           - os: macos-latest
-            name: mac
+            name: mac-universal
             dir_build: ./build
             file_name: clap-info
+            cmake_args: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+            run_test: true
+
           - os: windows-latest
             name: win
             dir_build: ./build/Release
             file_name: clap-info
             file_ext: .exe
+            cmake_args: -G"Visual Studio 17 2022" -A x64
+            run_test: true
+
+          - os: windows-latest
+            name: win-arm64ec
+            dir_build: ./build/Release
+            file_name: clap-info
+            file_ext: .exe
+            cmake_args: -G"Visual Studio 17 2022" -A arm64ec -DCMAKE_SYSTEM_VERSION=10
+            run_test: false
+
+
     steps:
       - name: Install Windows dependencies
         if: matrix.os == 'windows-latest'
@@ -56,19 +71,26 @@ jobs:
 
       - name: Build binary
         run: |
-          cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Release ${{ matrix.cmake_args }}
           cmake --build ./build --config Release
 
       - name: List files
         run: ls "${{ matrix.dir_build }}"
 
       - name: Test binary
+        if: ${{ matrix.run_test }}
         run: ${{ matrix.dir_build }}/${{ matrix.file_name }}${{ matrix.file_ext }} -h
 
       - name: Compress binary
         run: |
           cd "${{ matrix.dir_build }}"
           zip ${{ matrix.file_name }}-${{ matrix.name }}.zip ${{ matrix.file_name }}${{ matrix.file_ext }}
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.file_name }}-${{ matrix.name }}.zip
+          path: ${{ matrix.dir_build }}/${{ matrix.file_name }}-${{ matrix.name }}.zip
 
       - name: Upload binary
         uses: actions/upload-release-asset@v1
