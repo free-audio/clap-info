@@ -64,6 +64,10 @@ jobs:
         if: ${{ matrix.run_test }}
         run: ${{ matrix.dir_build }}/${{ matrix.file_name }}${{ matrix.file_ext }} -h
 
+      - name: Windows Dumpbin
+        if: matrix.os == 'windows-latest'
+        run: dumpbin.exe  ${{ matrix.dir_build }}/${{ matrix.file_name }}${{ matrix.file_ext }}
+
       - name: Compress binary
         run: |
           cd "${{ matrix.dir_build }}"
