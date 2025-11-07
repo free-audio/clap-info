@@ -18,7 +18,7 @@ effort, can be a useful tiny host to debug the first stages of CLAP development.
 ## To build
 
 ```bash
-git clone --recurse-submodules https://github.com/surge-synthesizer/clap-info
+git clone --recurse-submodules https://github.com/free-audio/clap-info
 cd clap-info
 cmake -Bbuild
 cmake --build build
