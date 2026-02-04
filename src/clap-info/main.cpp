@@ -121,6 +121,10 @@ int main(int argc, char **argv)
     bool brief{false};
     app.add_flag("--brief", brief, "Output brief infomation only");
 
+    bool preset{false};
+    app.add_flag("--preset-discovery", preset,
+                 "Search for and run preset discovery factory to JSON");
+
     CLI11_PARSE(app, argc, argv);
 
     CLAPInfoJsonRoot doc;
@@ -273,6 +277,13 @@ int main(int argc, char **argv)
     root["clap-version"] = ss.str();
 
     entry->init(clap.c_str());
+
+    if (preset)
+    {
+        root["preset-discovery"] = clap_info_host::presetDiscovery(entry);
+        entry->deinit();
+        return 0;
+    }
 
     auto fac = (clap_plugin_factory_t *)entry->get_factory(CLAP_PLUGIN_FACTORY_ID);
     auto plugin_count = fac->get_plugin_count(fac);
