@@ -29,5 +29,7 @@ Json::Value createStateJson(const clap_plugin *inst);
 Json::Value createNoteNameJson(const clap_plugin *inst);
 Json::Value createAudioPortsConfigJson(const clap_plugin *inst);
 
+Json::Value presetDiscovery(const clap_plugin_entry_t *entry);
+
 } // namespace clap_info_host
 #endif // CLAP_INFO_INFO_TYPES_H

@@ -70,7 +70,7 @@ jobs:
           zip ${{ matrix.file_name }}-${{ matrix.name }}.zip ${{ matrix.file_name }}${{ matrix.file_ext }}
 
       - name: Upload binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.file_name }}-${{ matrix.name }}.zip
           path: ${{ matrix.dir_build }}/${{ matrix.file_name }}-${{ matrix.name }}.zip
