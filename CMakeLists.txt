@@ -6,7 +6,7 @@ cmake_policy(SET CMP0091 NEW)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15 CACHE STRING "Minimum macOS version")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-project(clap-info VERSION 1.0.0 LANGUAGES C CXX)
+project(clap-info VERSION 1.2.2 LANGUAGES C CXX)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -95,5 +95,6 @@ else()
     target_compile_definitions(clap-scanner PUBLIC WIN=1)
 endif()
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE CLAP_INFO_VERSION="${PROJECT_VERSION}")
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_link_libraries(${PROJECT_NAME} PRIVATE CLI11 jsoncpp clap-scanner)
