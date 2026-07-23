@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 {
     CLI::App app("clap-info: CLAP command line validation tool");
 
-    app.set_version_flag("--version", "0.9.0");
+    app.set_version_flag("--version", CLAP_INFO_VERSION);
     std::string clap;
     app.add_option("-f,--file,file", clap, "CLAP plugin file location");
 
