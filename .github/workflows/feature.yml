@@ -30,7 +30,7 @@ jobs:
             dir_build: ./build/Release
             file_name: clap-info
             file_ext: .exe
-            cmake_args:-A x64
+            cmake_args: -A x64
             run_test: true
 
           - os: windows-latest
@@ -38,7 +38,7 @@ jobs:
             dir_build: ./build/Release
             file_name: clap-info
             file_ext: .exe
-            cmake_args:-A arm64ec -DCMAKE_SYSTEM_VERSION=10
+            cmake_args: -A arm64ec -DCMAKE_SYSTEM_VERSION=10
             run_test: false
 
 
